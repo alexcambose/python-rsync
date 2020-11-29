@@ -1,3 +1,4 @@
+from Syncer import Syncer
 import sys
 
 # if len(sys.argv) < 3:
@@ -5,10 +6,10 @@ import sys
 from time import sleep
 
 from monitors.Filesystem import Filesystem
+from monitors.Ftp import Ftp
 
 locationA = sys.argv[1]
 locationB = sys.argv[2]
-from Syncer import Syncer
 
 ftpRegex = "ftp:(?<user>\S*):(?<passwd>[\S^]+)@(?<url>\S+)\/(?<path>.*)"
 
@@ -28,8 +29,10 @@ ftpRegex = "ftp:(?<user>\S*):(?<passwd>[\S^]+)@(?<url>\S+)\/(?<path>.*)"
 #
 #
 fs1 = Filesystem(locationA)
-fs2 = Filesystem(locationB)
-syncer = Syncer(fs1, fs2)
-while 1:
-    sleep(2)
-    syncer.update()
+fs2 = Ftp(locationB)
+# syncer = Syncer(fs1, fs2)
+# while 1:
+#     sleep(2)
+#     syncer.update()
+
+print(list(fs2.walk('./Desktop/python-rsync/test')))
