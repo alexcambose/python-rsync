@@ -13,7 +13,8 @@ class Filesystem:
         state = []
         for (index, (dirname, dirnames, filenames)) in enumerate(list(walk(self.path))):
             dirname = dirname.replace(self.path, '')
-            real_path = path.join(self.path, dirname)
+            real_path = path.normpath(self.path + dirname)
+
             if index > 0:
                 state.append({'path': dirname, 'is_directory': True, 'last_modified': self.get_last_modified_time(real_path)})
             for filename in filenames:
@@ -33,17 +34,19 @@ class Filesystem:
         return content
 
     def is_directory(self, filename):
-        return path.isdir(path.join(self.path, filename))
+        return path.isdir(filename)
 
     def create_directory(self, filename):
-        return mkdir(path.join(self.path, filename))
+        return mkdir(filename)
 
     def copy_from(self, class_b, filename):
-        print('copy', filename, 'to', path.join(self.path, '../' + filename))
-        if class_b.is_directory(filename):
-            self.create_directory(filename)
+        target_path = path.normpath(self.path + filename)
+        from_path = path.normpath(class_b.path + filename)
+        print('copy from ',target_path, 'to',from_path)
+        if class_b.is_directory(from_path):
+            self.create_directory(target_path)
         else:
-            contents = class_b.read(filename)
-            f = open(path.join(self.path, filename), 'w')
+            contents = class_b.read(from_path)
+            f = open(target_path, 'w')
             f.write(contents)
             f.close()

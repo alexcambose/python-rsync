@@ -1,3 +1,6 @@
+from utils import remove_dictionary_key
+
+
 class Syncer:
     def __init__(self, class_a, class_b):
         self.class_a = class_a
@@ -29,6 +32,8 @@ class Syncer:
                             self.class_a.copy_from(self.class_b, state_b[i]['path'])
         (state_a, previous_state_a) = self.class_a.create_state()
         (state_b, previous_state_b) = self.class_b.create_state()
+        state_a = remove_dictionary_key(state_a, 'last_modified')
+        state_b = remove_dictionary_key(state_b, 'last_modified')
         print(state_a)
         print(state_b)
         print('')
@@ -40,4 +45,9 @@ class Syncer:
     def update(self):
         (state_a, previous_state_a) = self.class_a.create_state()
         (state_b, previous_state_b) = self.class_b.create_state()
+        # check for differences between the current and previous states
+        for element_a in state_a:
+            for element_b in state_a:
+                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a['is_directory']:
+
 
