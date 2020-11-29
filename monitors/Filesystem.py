@@ -1,7 +1,10 @@
-from os import walk, path, mkdir
+from os import walk, path, mkdir, remove, rmdir
 import math
 from StateManager import StateManager
 
+
+def log(*content):
+    print('[FILESYSTEM] ', *content)
 
 class Filesystem:
     def __init__(self, path):
@@ -25,10 +28,10 @@ class Filesystem:
         return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
 
     def get_last_modified_time(self, filepath):
-        return math.floor(path.getmtime(path.abspath(filepath)) / 200)
+        return math.floor(path.getmtime(path.abspath(filepath)) / 10)
 
     def read(self, filename):
-        f = open(path.join(self.path, filename), "r")
+        f = open(filename, "r")
         content = f.read()
         f.close()
         return content
@@ -39,10 +42,17 @@ class Filesystem:
     def create_directory(self, filename):
         return mkdir(filename)
 
+    def delete(self, filename):
+        filename = path.normpath(self.path + filename)
+        log('Delete from ', filename)
+        if self.is_directory(filename):
+            return rmdir(filename)
+        return remove(filename)
+
     def copy_from(self, class_b, filename):
         target_path = path.normpath(self.path + filename)
         from_path = path.normpath(class_b.path + filename)
-        print('copy from ',target_path, 'to',from_path)
+        log('Copy from ',from_path, 'to', target_path)
         if class_b.is_directory(from_path):
             self.create_directory(target_path)
         else:

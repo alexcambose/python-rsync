@@ -3,9 +3,10 @@ from utils import remove_dictionary_key
 
 class Syncer:
     def __init__(self, class_a, class_b):
+
         self.class_a = class_a
         self.class_b = class_b
-        (state_a, previous_state_a) = self.class_a.create_state()
+        '''(state_a, previous_state_a) = self.class_a.create_state()
         (state_b, previous_state_b) = self.class_b.create_state()
         # compare if there new, modified or deleted files between states
 
@@ -42,12 +43,38 @@ class Syncer:
                 self.class_b.copy_from(self.class_a, state_a[i]['path'])
             if i < len(state_b) and state_b[i] not in state_a:
                 self.class_a.copy_from(self.class_b, state_b[i]['path'])
+        '''
     def update(self):
+        print('UPDATE')
         (state_a, previous_state_a) = self.class_a.create_state()
-        (state_b, previous_state_b) = self.class_b.create_state()
+        print(state_a)
+        print(previous_state_a)
+        print()
         # check for differences between the current and previous states
-        for element_a in state_a:
-            for element_b in state_a:
+        for element_b in previous_state_a:
+            for element_a in state_a:
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a['is_directory']:
-
-
+                    if element_a['last_modified'] > element_b['last_modified']:
+                        self.class_b.copy_from(self.class_a, element_a['path'])
+                # new file added
+                if element_a not in previous_state_a:
+                    self.class_b.copy_from(self.class_a, element_a['path'])
+            # file removed
+            # if element_b not in state_a:
+            #     self.class_b.delete(element_b['path'])
+        (state_b, previous_state_b) = self.class_b.create_state()
+        print(state_b)
+        print(previous_state_b)
+        print()
+        # check for differences between the current and previous states
+        for element_b in previous_state_b:
+            for element_a in state_b:
+                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a['is_directory']:
+                    if element_a['last_modified'] > element_b['last_modified']:
+                        self.class_a.copy_from(self.class_b, element_a['path'])
+                # new file added
+                if element_a not in previous_state_a:
+                    self.class_a.copy_from(self.class_b, element_a['path'])
+            # file removed
+            # if element_b not in state_b:
+            #     self.class_a.delete(element_b['path'])

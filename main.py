@@ -2,6 +2,8 @@ import sys
 
 # if len(sys.argv) < 3:
 #     print("Invalid number of arguments")
+from time import sleep
+
 from monitors.Filesystem import Filesystem
 
 locationA = sys.argv[1]
@@ -28,6 +30,6 @@ ftpRegex = "ftp:(?<user>\S*):(?<passwd>[\S^]+)@(?<url>\S+)\/(?<path>.*)"
 fs1 = Filesystem(locationA)
 fs2 = Filesystem(locationB)
 syncer = Syncer(fs1, fs2)
-# while 1:
-#     sleep(3)
-#     syncer.run_sync()
+while 1:
+    sleep(2)
+    syncer.update()
