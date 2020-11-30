@@ -44,6 +44,8 @@ class Filesystem:
         return path.isdir(filename)
 
     def create_directory(self, filename):
+        filename = path.normpath(self.path + filename)
+
         return mkdir(filename)
 
     def delete(self, filename):
@@ -57,7 +59,7 @@ class Filesystem:
         target_path = filename
         from_path = filename
         if class_b.is_directory(from_path):
-            log('Copy from ', from_path, 'to', target_path)
+            log('Create dir from ', from_path, 'to', target_path)
             self.create_directory(target_path)
         else:
             log('Copy from ', from_path, 'to',

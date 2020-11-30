@@ -30,15 +30,22 @@ class Zip:
         self.zip_w = ZipFile(self.path, 'a')
 
     def create_state(self):
+        self.open_read()
+
+        name_list = self.zip_r.namelist()
         # set current state for class_a
         state = []
-        for file in self.zip_r.namelist():
+        for file in name_list:
             info = self.zip_r.getinfo(file)
             if info.is_dir():
-                state.append({'path': file, 'is_directory': True})
+                state.append({'path': file[0:-1], 'is_directory': True})
             else:
                 state.append({'path': file, 'is_directory': False,
                               'last_modified': self.get_last_modified_time(info)})
+        # add top level folder
+        if len(name_list) > 0 and name_list[0].split('/')[0] + '/' not in name_list:
+            state.insert(0, {'apath':   name_list[0].split(
+                '/')[0][0:-1], 'is_directory': True})
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
 
@@ -56,11 +63,10 @@ class Zip:
                 return self.zip_r.read(item.filename).decode('utf-8')
 
     def is_directory(self, filename):
-        for item in self.zip_r.namelist():
-            info = self.zip_r.getinfo(item)
-            if ntpath.basename(info.filename.strip("/")) == filename and info.is_dir():
-                return True
-        return False
+        current_state = self.state_manager.get_current_state()
+        for item in current_state:
+            if item['path'] == filename:
+                return item['is_directory']
 
     def create_directory(self, filename):
         zfi = ZipInfo(filename)
@@ -100,6 +106,6 @@ class Zip:
             self.create_directory(target_path)
         else:
             log('Copy from ', from_path, 'to',
-                path.normpath(self.path + target_path))
+                target_path)
             contents = class_b.read(from_path)
-            self.write(filename, content)
+            self.write(filename, contents)
