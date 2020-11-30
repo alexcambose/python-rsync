@@ -7,6 +7,7 @@ from time import sleep
 
 from monitors.Filesystem import Filesystem
 from monitors.Ftp import Ftp
+from monitors.Zip import Zip
 
 locationA = sys.argv[1]
 locationB = sys.argv[2]
@@ -29,10 +30,15 @@ ftpRegex = "ftp:(?<user>\S*):(?<passwd>[\S^]+)@(?<url>\S+)\/(?<path>.*)"
 #
 #
 fs1 = Filesystem(locationA)
-fs2 = Ftp(locationB)
+# fs2 = Filesystem(locationB)
+# fs2 = Ftp('./Desktop/python-rsync/test/dirb/')
 # syncer = Syncer(fs1, fs2)
 # while 1:
 #     sleep(2)
 #     syncer.update()
 
-print(list(fs2.walk('./Desktop/python-rsync/test')))
+fs3 = Zip('./test/dira.zip')
+# fs3.create_directory('test1/')
+# fs3.create_directory('te3st2/')`
+fs3.delete('test1/')
+print(fs3.create_state())
