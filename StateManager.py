@@ -7,8 +7,6 @@ class StateManager:
         self.current_state = []
 
     def set_state(self, state):
-        # if not self.current_state:
-        #     self.previous_state = deepcopy(state)
         self.previous_state = deepcopy(self.current_state)
         self.current_state = state
 

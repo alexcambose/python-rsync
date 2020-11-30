@@ -6,11 +6,13 @@ from monitors.Filesystem import Filesystem
 from monitors.Ftp import Ftp
 from monitors.Zip import Zip
 
+# check number of arguments
 if len(sys.argv) < 3:
     print("Invalid number of arguments")
 
-
+# array that will hold the handlers instance
 instances = [None, None]
+
 params = sys.argv[1:]
 for i in range(0, 2):
     match = Ftp.selector_matches(params[i])
@@ -27,7 +29,7 @@ for i in range(0, 2):
         instances[i] = Zip(match)
         continue
     raise Exception(params[i] + ' is not a valid location')
-# fs2 = Ftp('./Desktop/python-rsync/test/dirb/')
+
 syncer = Syncer(instances[0], instances[1])
 while True:
     sleep(2)

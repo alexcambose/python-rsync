@@ -52,11 +52,13 @@ class Zip:
                 state.append({'path': file, 'is_directory': False,
                               'last_modified': self.get_last_modified_time(info)})
         # add top level folder
-        if len(name_list) > 0 and name_list[0].split('/')[0] + '/' not in name_list:
-            state.insert(0, {'apath':   name_list[0].split(
+        if len(name_list) > 0 and name_list[0].split(
+                '/')[0] + '/' not in name_list:
+            state.insert(0, {'apath': name_list[0].split(
                 '/')[0][0:-1], 'is_directory': True})
         self.state_manager.set_state(state)
-        return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
+        return self.state_manager.get_current_state(
+        ), self.state_manager.get_previous_state()
 
     def get_last_modified_time(self, zip_info):
         # (year, month, day, hour, minute, second) = zip_info.date_time

@@ -48,18 +48,19 @@ class Ftp:
 
             self.ftp.retrlines(
                 'LIST', lambda x: file_list.append(x.split()))
+            # parse each file info result
             for info in file_list:
                 ls_type, name = info[0], info[-1]
                 if ls_type.startswith('d'):
                     dirs.append(name)
                 else:
-                    nondirs.append(
-                        (name, self.parse_ftp_date(self.ftp.voidcmd(f"MDTM " + name).split()[-1])))
+                    nondirs.append((name, self.parse_ftp_date(
+                        self.ftp.voidcmd(f"MDTM " + name).split()[-1])))
             return dirs, nondirs
 
     def walk(self, filepath='/'):
         """
-        Walk through FTP server's directory tree, based on a BFS algorithm.
+        Walk through FTP server's directory tree
         """
         dirs, nondirs = self.listdir(filepath)
         yield filepath, dirs, nondirs
@@ -70,12 +71,16 @@ class Ftp:
             filepath = path.dirname(filepath)
 
     def create_state(self):
-        # set current state for class_a
         state = []
-        for (index, (dirname, dirnames, filenames)) in enumerate(list(self.walk(self.path))):
+        for (
+            index, (dirname, dirnames, filenames)) in enumerate(
+            list(
+                self.walk(
+                self.path))):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
+            # ignore the first directory
             if index > 0:
                 state.append({'path': dirname, 'is_directory': True})
             for (filename, last_modified) in filenames:
@@ -83,7 +88,8 @@ class Ftp:
                 state.append({'path': path_with_file, 'is_directory': False,
                               'last_modified': last_modified})
         self.state_manager.set_state(state)
-        return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
+        return self.state_manager.get_current_state(
+        ), self.state_manager.get_previous_state()
 
     def parse_ftp_date(self, date_string):
         date_time_obj = datetime.datetime.strptime(
