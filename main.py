@@ -1,44 +1,34 @@
 from Syncer import Syncer
 import sys
-
-# if len(sys.argv) < 3:
-#     print("Invalid number of arguments")
 from time import sleep
 
 from monitors.Filesystem import Filesystem
 from monitors.Ftp import Ftp
 from monitors.Zip import Zip
 
-locationA = sys.argv[1]
-locationB = sys.argv[2]
+if len(sys.argv) < 3:
+    print("Invalid number of arguments")
 
-ftpRegex = "ftp:(?<user>\S*):(?<passwd>[\S^]+)@(?<url>\S+)\/(?<path>.*)"
 
-# def filesystemData():
-# previousState = []
-# currentState = []
-
-#     previousState = deepcopy(currentState)
-#     currentState = []
-#     for (dirpath, dirnames, filenames) in walk("./"):
-#         for filename in filenames:
-#             currentState.append((dirpath + filename))
-#     print(currentState, previousState)
-#     for fileCurrentState in currentState:
-#         if fileCurrentState not in previousState:
-#             print('Delete occured')
-#
-#
-fs1 = Filesystem(locationA)
-# fs2 = Filesystem(locationB)
+instances = [None, None]
+params = sys.argv[1:]
+for i in range(0, 2):
+    match = Ftp.selector_matches(params[i])
+    if match:
+        instances[i] = Ftp(match['user'], match['password'],
+                           match['host'], match['path'])
+        continue
+    match = Filesystem.selector_matches(params[i])
+    if match:
+        instances[i] = Filesystem(match)
+        continue
+    match = Zip.selector_matches(params[i])
+    if match:
+        instances[i] = Zip(match)
+        continue
+    raise Exception(params[i] + ' is not a valid location')
 # fs2 = Ftp('./Desktop/python-rsync/test/dirb/')
-# syncer = Syncer(fs1, fs2)
-# while 1:
-#     sleep(2)
-#     syncer.update()
-
-fs3 = Zip('./test/dira.zip')
-# fs3.create_directory('test1/')
-# fs3.create_directory('te3st2/')`
-fs3.delete('test1/')
-print(fs3.create_state())
+syncer = Syncer(instances[0], instances[1])
+while True:
+    sleep(2)
+    syncer.update()

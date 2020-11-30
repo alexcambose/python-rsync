@@ -4,6 +4,7 @@ from StateManager import StateManager
 from zipfile import ZipFile, ZipInfo
 import datetime
 import ntpath
+import re
 
 
 def log(*content):
@@ -18,6 +19,14 @@ class Zip:
         self.zip_w = None
         self.open_read()
         self.open_write()
+
+    @staticmethod
+    def selector_matches(selector):
+        regex = r"zip:(.*)$"
+        x = re.match(regex, selector)
+        if not x:
+            return None
+        return x.group(1)
 
     def open_read(self):
         if self.zip_r:

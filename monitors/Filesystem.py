@@ -1,6 +1,7 @@
 from os import walk, path, mkdir, remove, rmdir
 import math
 from StateManager import StateManager
+import re
 
 
 def log(*content):
@@ -11,6 +12,15 @@ class Filesystem:
     def __init__(self, path):
         self.state_manager = StateManager()
         self.path = path
+
+    @staticmethod
+    def selector_matches(selector):
+        print(selector)
+        regex = r"folder:(.*)"
+        x = re.match(regex, selector)
+        if not x:
+            return None
+        return x.group(1)
 
     def create_state(self):
         # set current state for class_a

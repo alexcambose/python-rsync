@@ -19,16 +19,20 @@ class Syncer:
         for i in range(max(len(state_a), len(state_b))):
             # we have a difference
             for j in range(min(len(state_a), len(state_b))):
-                # we have the same file but with different last_modified timestamps
-                if i < len(state_a) and i < len(state_b) and j < len(state_a) and j < len(state_b):
-                    if state_a[i]['path'] == state_b[j]['path'] and state_a[i]['is_directory'] == state_b[j]['is_directory'] and state_a[i]['last_modified'] != state_b[j]['last_modified']:
+                # we have the same file but with different last_modified
+                # timestamps
+                if i < len(state_a) and i < len(state_b) and j < len(
+                        state_a) and j < len(state_b):
+                    if state_a[i]['path'] == state_b[j]['path'] and state_a[i]['is_directory'] == state_b[
+                            j]['is_directory'] and state_a[i]['last_modified'] != state_b[j]['last_modified']:
                         if state_a[i]['last_modified'] < state_b[j]['last_modified']:
                             self.class_a.copy_from(
                                 self.class_b, state_b[i]['path'])
                         else:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
-                    if state_b[i]['path'] == state_a[j]['path'] and state_b[i]['is_directory'] == state_a[j]['is_directory'] and state_b[i]['last_modified'] != state_a[j]['last_modified']:
+                    if state_b[i]['path'] == state_a[j]['path'] and state_b[i]['is_directory'] == state_a[
+                            j]['is_directory'] and state_b[i]['last_modified'] != state_a[j]['last_modified']:
                         if state_b[i]['last_modified'] < state_a[j]['last_modified']:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
@@ -59,7 +63,8 @@ class Syncer:
         modified = False
         for element_b in previous_state_a:
             for element_a in state_a:
-                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a['is_directory'] and element_a['is_directory'] == False:
+                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
+                        'is_directory'] and element_a['is_directory'] == False:
                     if element_a['last_modified'] > element_b['last_modified']:
                         self.class_b.copy_from(self.class_a, element_a['path'])
                         modified = True
@@ -68,7 +73,8 @@ class Syncer:
                     self.class_b.copy_from(self.class_a, element_a['path'])
                     modified = True
             # file removed
-            if element_b not in state_a and len(previous_state_a) != len(state_a):
+            if element_b not in state_a and len(
+                    previous_state_a) != len(state_a):
                 self.class_b.delete(element_b['path'])
                 modified = True
             if modified:
@@ -85,7 +91,8 @@ class Syncer:
         # check for differences between the current and previous states
         for element_b in previous_state_b:
             for element_a in state_b:
-                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a['is_directory'] and element_a['is_directory'] == False:
+                if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
+                        'is_directory'] and element_a['is_directory'] == False:
                     if element_a['last_modified'] > element_b['last_modified']:
                         self.class_a.copy_from(self.class_b, element_a['path'])
                         modified = True
@@ -94,7 +101,8 @@ class Syncer:
                     self.class_a.copy_from(self.class_b, element_a['path'])
                     modified = True
             # file removed
-            if element_b not in state_b and len(previous_state_b) != len(state_b):
+            if element_b not in state_b and len(
+                    previous_state_b) != len(state_b):
                 self.class_a.delete(element_b['path'])
                 modified = True
             if modified:

@@ -4,6 +4,7 @@ import math
 from StateManager import StateManager
 from ftplib import FTP
 from io import StringIO, BytesIO
+import re
 
 
 def log(*content):
@@ -11,12 +12,25 @@ def log(*content):
 
 
 class Ftp:
-    def __init__(self, path):
-        ftp = FTP('localhost')
-        ftp.login(user="alex", passwd="1324")
+    def __init__(self, username, password, host, path):
+        ftp = FTP(host)
+        ftp.login(user=username, passwd=password)
         self.ftp = ftp
         self.state_manager = StateManager()
         self.path = path
+
+    @staticmethod
+    def selector_matches(selector):
+        regex = r"ftp:(\S*):([\S^]+)@(\S+)\/(.*)"
+        x = re.search(regex, selector)
+        if not x:
+            return None
+        return {
+            "user": x.group(1),
+            "password": x.group(2),
+            "host": x.group(3),
+            "path": x.group(4),
+        }
 
     def listdir(self, _path):
         """
