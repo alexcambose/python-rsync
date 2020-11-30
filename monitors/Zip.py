@@ -1,8 +1,9 @@
-from os import walk, path, mkdir, remove, rmdir
+from os import walk, path, mkdir, remove, rmdir, rename
 import math
 from StateManager import StateManager
 from zipfile import ZipFile, ZipInfo
 import datetime
+import ntpath
 
 
 def log(*content):
@@ -50,16 +51,16 @@ class Zip:
         return math.floor(date_time_obj.timestamp())
 
     def read(self, filename):
-        filename = path.normpath(self.path + filename)
-        print(filename)
-        f = open(filename, "r")
-        content = f.read()
-        f.close()
-        return content
+        for item in self.zip_r.infolist():
+            if (item.filename == filename):
+                return self.zip_r.read(item.filename).decode('utf-8')
 
     def is_directory(self, filename):
-        filename = path.normpath(self.path + filename)
-        return path.isdir(filename)
+        for item in self.zip_r.namelist():
+            info = self.zip_r.getinfo(item)
+            if ntpath.basename(info.filename.strip("/")) == filename and info.is_dir():
+                return True
+        return False
 
     def create_directory(self, filename):
         zfi = ZipInfo(filename)
@@ -68,13 +69,27 @@ class Zip:
         self.open_write()
 
     def delete(self, filename):
-        zout = ZipFile(path, 'w')
+        zout = ZipFile('./temp.zip', 'w')
         for item in self.zip_r.infolist():
             buff = self.zip_r.read(item.filename)
-            print(buff)
             if (item.filename != filename):
                 zout.writestr(item, buff)
         zout.close()
+        rename("./temp.zip",
+               self.path)
+        self.open_read()
+
+    def write(self, filename, content):
+        zout = ZipFile('./temp.zip', 'w')
+        for item in self.zip_r.infolist():
+            buff = self.zip_r.read(item.filename)
+            if (item.filename == filename):
+                zout.writestr(item, content)
+            else:
+                zout.writestr(item, buff)
+        zout.close()
+        rename("./temp.zip",
+               self.path)
         self.open_read()
 
     def copy_from(self, class_b, filename):
@@ -87,6 +102,4 @@ class Zip:
             log('Copy from ', from_path, 'to',
                 path.normpath(self.path + target_path))
             contents = class_b.read(from_path)
-            f = open(path.normpath(self.path + target_path), 'w')
-            f.write(contents)
-            f.close()
+            self.write(filename, content)
