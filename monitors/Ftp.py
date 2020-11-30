@@ -1,7 +1,9 @@
+import datetime
 from os import walk, path, mkdir, remove, rmdir
 import math
 from StateManager import StateManager
 from ftplib import FTP
+from io import StringIO, BytesIO
 
 
 def log(*content):
@@ -29,6 +31,7 @@ class Ftp:
                   self.ftp.pwd(), exp.__str__(), _path[1:])
             return [], []
         else:
+
             self.ftp.retrlines(
                 'LIST', lambda x: file_list.append(x.split()))
             for info in file_list:
@@ -36,7 +39,8 @@ class Ftp:
                 if ls_type.startswith('d'):
                     dirs.append(name)
                 else:
-                    nondirs.append(name)
+                    nondirs.append(
+                        (name, self.parse_ftp_date(self.ftp.voidcmd(f"MDTM " + name).split()[-1])))
             return dirs, nondirs
 
     def walk(self, filepath='/'):
@@ -46,7 +50,7 @@ class Ftp:
         dirs, nondirs = self.listdir(filepath)
         yield filepath, dirs, nondirs
         for name in dirs:
-            filepath = path.join(filepath + '/' + name)
+            filepath = path.join(filepath + name)
             yield from self.walk(filepath)
             self.ftp.cwd('..')
             filepath = path.dirname(filepath)
@@ -54,50 +58,56 @@ class Ftp:
     def create_state(self):
         # set current state for class_a
         state = []
-        for (index, (dirname, dirnames, filenames)) in enumerate(list(walk(self.path))):
+        for (index, (dirname, dirnames, filenames)) in enumerate(list(self.walk(self.path))):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
             if index > 0:
-                state.append({'path': dirname, 'is_directory': True,
-                              'last_modified': self.get_last_modified_time(real_path)})
-            for filename in filenames:
+                state.append({'path': dirname, 'is_directory': True})
+            for (filename, last_modified) in filenames:
                 path_with_file = path.join(dirname, filename)
                 state.append({'path': path_with_file, 'is_directory': False,
-                              'last_modified': self.get_last_modified_time(path.join(self.path, path_with_file))})
+                              'last_modified': last_modified})
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
 
-    def get_last_modified_time(self, filepath):
-        return math.floor(path.getmtime(path.abspath(filepath)) / 10)
+    def parse_ftp_date(self, date_string):
+        date_time_obj = datetime.datetime.strptime(
+            date_string, '%Y%m%d%H%M%S')
+        return math.floor(date_time_obj.timestamp() / 10)
 
     def read(self, filename):
-        f = open(filename, "r")
-        content = f.read()
-        f.close()
-        return content
+        r = StringIO()
+        self.ftp.cwd('/')
 
-    def is_directory(self, filename):
-        return path.isdir(filename)
+        print(self.ftp.retrlines('RETR .' + self.path + filename, r.write))
+        return r.getvalue()
 
-    def create_directory(self, filename):
-        return mkdir(filename)
+    def create_directory(self, currentDir):
+        log('Create directory ', currentDir)
+        self.ftp.mkd(currentDir)
 
     def delete(self, filename):
-        filename = path.normpath(self.path + filename)
-        log('Delete from ', filename)
         if self.is_directory(filename):
-            return rmdir(filename)
-        return remove(filename)
+            return self.ftp.rmd(filename)
+        return self.ftp.delete(filename)
+
+    def is_directory(self, filename):
+        current_state = self.state_manager.get_current_state()
+        filename = path.join('/', filename)
+        print(filename)
+        for item in current_state:
+            if item['path'] == filename:
+                return item['is_directory']
 
     def copy_from(self, class_b, filename):
-        target_path = path.normpath(self.path + filename)
-        from_path = path.normpath(class_b.path + filename)
-        log('Copy from ', from_path, 'to', target_path)
+        target_path = filename
+        from_path = filename
         if class_b.is_directory(from_path):
+            log('Copy from ', from_path, 'to', target_path)
             self.create_directory(target_path)
         else:
-            contents = class_b.read(from_path)
-            f = open(target_path, 'w')
-            f.write(contents)
-            f.close()
+            log('Copy ', class_b.read(from_path),
+                ' from ', from_path, 'to', target_path)
+            bio = BytesIO(class_b.read(from_path).encode('utf-8'))
+            self.ftp.storbinary('STOR ' + filename, bio)
