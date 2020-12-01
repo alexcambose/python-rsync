@@ -1,3 +1,6 @@
+"""
+    Zip class
+    """
 from os import walk, path, mkdir, remove, rmdir, rename
 import math
 from StateManager import StateManager
@@ -49,14 +52,16 @@ class Zip:
             if info.is_dir():
                 state.append({'path': file[0:-1], 'is_directory': True})
             else:
-                state.append({'path': file, 'is_directory': False,
-                              'last_modified': self.get_last_modified_time(info)})
+                state.append(
+                    {'path': file, 'is_directory': False,
+                     'last_modified': self.get_last_modified_time(info)})
         # add top level folder
         if len(name_list) > 0 and name_list[0].split('/')[0] + '/' not in name_list:
             state.insert(0, {'path':   name_list[0].split(
                 '/')[0][0:-1], 'is_directory': True})
         self.state_manager.set_state(state)
-        return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
+        return self.state_manager.get_current_state(
+        ), self.state_manager.get_previous_state()
 
     def get_last_modified_time(self, zip_info):
         # (year, month, day, hour, minute, second) = zip_info.date_time
@@ -68,7 +73,7 @@ class Zip:
 
     def read(self, filename):
         for item in self.zip_r.infolist():
-            if (item.filename == filename):
+            if item.filename == filename:
                 return self.zip_r.read(item.filename).decode('utf-8')
 
     def is_directory(self, filename):

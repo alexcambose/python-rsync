@@ -26,7 +26,11 @@ class Filesystem:
     def create_state(self):
         # set current state for class_a
         state = []
-        for (index, (dirname, dirnames, filenames)) in enumerate(list(walk(self.path))):
+        for (
+            index, (dirname, dirnames, filenames)) in enumerate(
+            list(
+                walk(
+                self.path))):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
@@ -34,10 +38,17 @@ class Filesystem:
                 state.append({'path': dirname, 'is_directory': True})
             for filename in filenames:
                 path_with_file = path.join(dirname, filename)
-                state.append({'path': path_with_file, 'is_directory': False,
-                              'last_modified': self.get_last_modified_time(path.join(self.path, path_with_file))})
+                state.append(
+                    {
+                        'path': path_with_file,
+                        'is_directory': False,
+                        'last_modified': self.get_last_modified_time(
+                            path.join(
+                                self.path,
+                                path_with_file))})
         self.state_manager.set_state(state)
-        return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
+        return self.state_manager.get_current_state(
+        ), self.state_manager.get_previous_state()
 
     def get_last_modified_time(self, filepath):
         return math.floor(path.getmtime(path.abspath(filepath)) / 10)

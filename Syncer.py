@@ -1,15 +1,27 @@
+"""
+Syncer class
+"""
 from utils import remove_dictionary_key
 
 
 class Syncer:
+    """
+    The bridge between modes, check for file changes.
+    """
+
     def __init__(self, class_a, class_b):
         self.class_a = class_a
         self.class_b = class_b
+<<<<<<< HEAD
         self.startup()
 
     def startup(self):
         (state_a, previous_state_a) = self.class_a.create_state()
         (state_b, previous_state_b) = self.class_b.create_state()
+=======
+        (state_a) = self.class_a.create_state()
+        (state_b) = self.class_b.create_state()
+>>>>>>> bb9be7104e1d297f0ae800e6432c17a4db3e69cc
         # compare if there new, modified or deleted files between states
 
         state_a = list(filter(lambda x: x['is_directory'] == False, state_a))
@@ -27,7 +39,8 @@ class Syncer:
                         state_a) and j < len(state_b):
                     if state_a[i]['path'] == state_b[j]['path'] and state_a[i]['is_directory'] == state_b[
                             j]['is_directory'] and state_a[i]['last_modified'] != state_b[j]['last_modified']:
-                        if state_a[i]['last_modified'] < state_b[j]['last_modified']:
+                        if state_a[i]['last_modified'] < state_b[j][
+                                'last_modified']:
                             self.class_a.copy_from(
                                 self.class_b, state_b[i]['path'])
                         else:
@@ -35,14 +48,15 @@ class Syncer:
                                 self.class_a, state_a[i]['path'])
                     if state_b[i]['path'] == state_a[j]['path'] and state_b[i]['is_directory'] == state_a[
                             j]['is_directory'] and state_b[i]['last_modified'] != state_a[j]['last_modified']:
-                        if state_b[i]['last_modified'] < state_a[j]['last_modified']:
+                        if state_b[i]['last_modified'] < state_a[j][
+                                'last_modified']:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
                         else:
                             self.class_a.copy_from(
                                 self.class_b, state_b[i]['path'])
-        (state_a, previous_state_a) = self.class_a.create_state()
-        (state_b, previous_state_b) = self.class_b.create_state()
+        (state_a) = self.class_a.create_state()
+        (state_b) = self.class_b.create_state()
         state_a = remove_dictionary_key(state_a, 'last_modified')
         state_b = remove_dictionary_key(state_b, 'last_modified')
         print('b', state_a)
@@ -67,7 +81,7 @@ class Syncer:
         for element_b in previous_state_a:
             for element_a in state_a:
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
-                        'is_directory'] and element_a['is_directory'] == False:
+                        'is_directory'] and not element_a['is_directory']:
                     if element_a['last_modified'] > element_b['last_modified']:
                         self.class_b.copy_from(self.class_a, element_a['path'])
                         modified = True
@@ -95,7 +109,7 @@ class Syncer:
         for element_b in previous_state_b:
             for element_a in state_b:
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
-                        'is_directory'] and element_a['is_directory'] == False:
+                        'is_directory'] and not element_a['is_directory']:
                     if element_a['last_modified'] > element_b['last_modified']:
                         self.class_a.copy_from(self.class_b, element_a['path'])
                         modified = True
