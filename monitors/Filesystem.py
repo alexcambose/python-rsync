@@ -11,11 +11,12 @@ def log(*content):
 class Filesystem:
     def __init__(self, path):
         self.state_manager = StateManager()
+        if path[-1] != '/':
+            path = path + '/'
         self.path = path
 
     @staticmethod
     def selector_matches(selector):
-        print(selector)
         regex = r"folder:(.*)"
         x = re.match(regex, selector)
         if not x:

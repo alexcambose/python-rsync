@@ -15,13 +15,15 @@ class Ftp:
     def __init__(self, username, password, host, path):
         ftp = FTP(host)
         ftp.login(user=username, passwd=password)
+        log('Connected to {} with username {} and password {} on path {}'.format(
+            host, username, password, path))
         self.ftp = ftp
         self.state_manager = StateManager()
         self.path = path
 
     @staticmethod
     def selector_matches(selector):
-        regex = r"ftp:(\S*):([\S^]+)@(\S+)\/(.*)"
+        regex = r"ftp:(\S*):([\S]+)@([\S^.]+?)([~.\/].*)"
         x = re.search(regex, selector)
         if not x:
             return None
@@ -39,10 +41,10 @@ class Ftp:
 
         file_list, dirs, nondirs = [], [], []
         try:
-            self.ftp.cwd(_path[1:])
+            self.ftp.cwd(_path)
         except Exception as exp:
-            print("the current path is : ",
-                  self.ftp.pwd(), exp.__str__(), _path[1:])
+            log("the current path is : ",
+                self.ftp.pwd(), exp.__str__(), _path)
             return [], []
         else:
 
@@ -53,8 +55,10 @@ class Ftp:
                 if ls_type.startswith('d'):
                     dirs.append(name)
                 else:
+                    modification_time = self.parse_ftp_date(self.ftp.voidcmd(
+                        f"MDTM " + name).split()[-1])
                     nondirs.append(
-                        (name, self.parse_ftp_date(self.ftp.voidcmd(f"MDTM " + name).split()[-1])))
+                        (name, modification_time))
             return dirs, nondirs
 
     def walk(self, filepath='/'):
@@ -64,7 +68,7 @@ class Ftp:
         dirs, nondirs = self.listdir(filepath)
         yield filepath, dirs, nondirs
         for name in dirs:
-            filepath = path.join(filepath + name)
+            filepath = path.join(filepath + '/' + name)
             yield from self.walk(filepath)
             self.ftp.cwd('..')
             filepath = path.dirname(filepath)
@@ -92,14 +96,16 @@ class Ftp:
 
     def read(self, filename):
         r = StringIO()
-        self.ftp.cwd('/')
-
-        print(self.ftp.retrlines('RETR .' + self.path + filename, r.write))
+        # self.ftp.cwd('/')
         return r.getvalue()
 
     def create_directory(self, currentDir):
         log('Create directory ', currentDir)
-        self.ftp.mkd(currentDir)
+        try:
+            self.ftp.mkd(currentDir)
+        except:
+            # silent fail, directory already exists
+            return
 
     def delete(self, filename):
         if self.is_directory(filename):
@@ -114,14 +120,20 @@ class Ftp:
             if item['path'] == filename:
                 return item['is_directory']
 
+    def write(self, filename, content):
+        bio = BytesIO(content)
+        self.ftp.storbinary('STOR ' + filename, bio)
+
     def copy_from(self, class_b, filename):
         target_path = filename
         from_path = filename
+        print(filename)
+        if target_path[0] == '/':
+            target_path = '.' + target_path
         if class_b.is_directory(from_path):
             log('Copy from ', from_path, 'to', target_path)
             self.create_directory(target_path)
         else:
             log('Copy ', class_b.read(from_path),
                 ' from ', from_path, 'to', target_path)
-            bio = BytesIO(class_b.read(from_path).encode('utf-8'))
-            self.ftp.storbinary('STOR ' + filename, bio)
+            self.write(target_path, class_b.read(from_path).encode('utf-8'))

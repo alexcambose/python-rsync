@@ -3,9 +3,11 @@ from utils import remove_dictionary_key
 
 class Syncer:
     def __init__(self, class_a, class_b):
-
         self.class_a = class_a
         self.class_b = class_b
+        self.startup()
+
+    def startup(self):
         (state_a, previous_state_a) = self.class_a.create_state()
         (state_b, previous_state_b) = self.class_b.create_state()
         # compare if there new, modified or deleted files between states
@@ -43,11 +45,12 @@ class Syncer:
         (state_b, previous_state_b) = self.class_b.create_state()
         state_a = remove_dictionary_key(state_a, 'last_modified')
         state_b = remove_dictionary_key(state_b, 'last_modified')
-        print(state_a)
-        print(state_b)
+        print('b', state_a)
+        print('b', state_b)
         print('')
         # copy missing files
         for i in range(max(len(state_a), len(state_b))):
+            print(i)
             if i < len(state_a) and state_a[i] not in state_b:
                 self.class_b.copy_from(self.class_a, state_a[i]['path'])
             if i < len(state_b) and state_b[i] not in state_a:
@@ -111,3 +114,5 @@ class Syncer:
             print('REFRESH')
             self.class_a.create_state()
             self.update()
+
+        # self.startup()

@@ -53,7 +53,7 @@ class Zip:
                               'last_modified': self.get_last_modified_time(info)})
         # add top level folder
         if len(name_list) > 0 and name_list[0].split('/')[0] + '/' not in name_list:
-            state.insert(0, {'apath':   name_list[0].split(
+            state.insert(0, {'path':   name_list[0].split(
                 '/')[0][0:-1], 'is_directory': True})
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(), self.state_manager.get_previous_state()
@@ -78,16 +78,18 @@ class Zip:
                 return item['is_directory']
 
     def create_directory(self, filename):
-        zfi = ZipInfo(filename)
+        zfi = ZipInfo(filename + '/')
         self.zip_w.writestr(zfi, '')
+        log('Creating directory', filename)
         self.open_read()
         self.open_write()
 
     def delete(self, filename):
+        log("Delete ", filename)
         zout = ZipFile('./temp.zip', 'w')
         for item in self.zip_r.infolist():
             buff = self.zip_r.read(item.filename)
-            if (item.filename != filename):
+            if item.filename != filename and item.filename != filename + '/':
                 zout.writestr(item, buff)
         zout.close()
         rename("./temp.zip",
@@ -96,12 +98,16 @@ class Zip:
 
     def write(self, filename, content):
         zout = ZipFile('./temp.zip', 'w')
+        did_write = False
         for item in self.zip_r.infolist():
             buff = self.zip_r.read(item.filename)
             if (item.filename == filename):
                 zout.writestr(item, content)
+                did_write = True
             else:
                 zout.writestr(item, buff)
+        if not did_write:
+            zout.writestr(filename, content)
         zout.close()
         rename("./temp.zip",
                self.path)
