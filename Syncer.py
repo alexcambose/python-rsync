@@ -63,50 +63,59 @@ class Syncer:
                 self.class_b.copy_from(self.class_a, state_a[i]['path'])
             if i < len(state_b) and state_b[i] not in state_a:
                 self.class_a.copy_from(self.class_b, state_b[i]['path'])
+        # finally, run create state again to update the states after the changes
+        self.class_a.create_state()
+        self.class_b.create_state()
     def compute_states(self, state, previous_state, class_a, class_b):
-        modified = False
         for element_b in state:
             for element_a in previous_state:
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
                         'is_directory'] and not element_a['is_directory']:
                     if element_a['last_modified'] > element_b['last_modified']:
                         class_b.copy_from(class_a, element_a['path'])
-                        modified = True
+                        return True
             # new file added
             if element_b not in previous_state:
                 print('File {} added'.format(element_b))
                 class_b.copy_from(class_a, element_b['path'])
-                modified = True
-            if modified:
-                break
+                # new file could be added by moving, therefore we need to check for deleted files also
+                for element_c in previous_state:
+                    if element_c not in state:
+                        print('File {} deleted (moved)'.format(element_c))
+                        class_b.delete(element_c['path'])
+                        return True
+                return True
         if len(state) == 0:
             for element_b in previous_state:
                 print('File {} deleted'.format(element_b))
                 class_b.delete(element_b['path'])
-                modified = True
+                return True
+        # check for removed files
         for element_b in previous_state:
             for element_a in state:
-                # file removed
+                # if an element from the previous state does not exist in the current state
                 if element_b not in state:
                     print('File {} deleted'.format(element_b))
                     class_b.delete(element_b['path'])
-                    modified = True
-        return modified
+                    return True
+        return False
     def update(self):
         print('UPDATE')
         (state_a, previous_state_a) = self.class_a.create_state()
         print('state_a         ', state_a)
         print('previous_state_a', previous_state_a)
         print()
-        # check for differences between the current and previous states
-        modified = False
-        modified = self.compute_states(state_a, previous_state_a, self.class_a, self.class_b)
+        
         (state_b, previous_state_b) = self.class_b.create_state()
         print('state_b         ', state_b)
         print('previous_state_b', previous_state_b)
         print()
+        # check for differences between the current and previous states
+        modified = False
+        modified = self.compute_states(state_a, previous_state_a, self.class_a, self.class_b)
         if modified:
             print('REFRESH')
+            self.class_b.create_state()
             self.update()
             return
         modified = False
@@ -115,5 +124,5 @@ class Syncer:
             print('REFRESH')
             self.class_a.create_state()
             self.update()
-
-        # self.startup()
+        if str(state_a) != str(state_b):
+            self.startup()
