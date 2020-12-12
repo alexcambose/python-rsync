@@ -1,5 +1,7 @@
-from os import walk, path, mkdir, remove, rmdir
+from os import system, walk, path, mkdir, remove
+from shutil import rmtree
 import math
+from utils import handle_failure
 from StateManager import StateManager
 import re
 
@@ -22,15 +24,17 @@ class Filesystem:
         if not x:
             return None
         return x.group(1)
-
+    
+    @handle_failure(log)
     def create_state(self):
         # set current state for class_a
         state = []
+        file_list = list(
+                walk(
+                self.path))
         for (
             index, (dirname, dirnames, filenames)) in enumerate(
-            list(
-                walk(
-                self.path))):
+            file_list):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
@@ -49,37 +53,44 @@ class Filesystem:
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
-
+    
+    @handle_failure(log)
     def get_last_modified_time(self, filepath):
         return math.floor(path.getmtime(path.abspath(filepath)) / 10)
 
+    @handle_failure(log)
     def read(self, filename):
         filename = path.normpath(self.path + filename)
-        print(filename)
+        log('Reading ', filename)
         f = open(filename, "r")
         content = f.read()
         f.close()
         return content
 
+    @handle_failure(log)
     def is_directory(self, filename):
         filename = path.normpath(self.path + filename)
         return path.isdir(filename)
-
+    
+    @handle_failure(log)
     def create_directory(self, filename):
         filename = path.normpath(self.path + filename)
 
         return mkdir(filename)
 
+    @handle_failure(log)
     def delete(self, filename):
         file = path.normpath(self.path + filename)
         log('Delete from ', file)
         if self.is_directory(filename):
-            return rmdir(file)
+            return rmtree(file)
         return remove(file)
 
+    @handle_failure(log)
     def copy_from(self, class_b, filename):
         target_path = filename
         from_path = filename
+        log(class_b, from_path, class_b.is_directory(from_path))
         if class_b.is_directory(from_path):
             log('Create dir from ', from_path, 'to', target_path)
             self.create_directory(target_path)
