@@ -62,7 +62,7 @@ class Filesystem:
     def read(self, filename):
         filename = path.normpath(self.path + filename)
         log('Reading ', filename)
-        f = open(filename, "r")
+        f = open(filename, "rb")
         content = f.read()
         f.close()
         return content
