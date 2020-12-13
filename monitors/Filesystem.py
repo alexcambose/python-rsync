@@ -24,17 +24,17 @@ class Filesystem:
         if not x:
             return None
         return x.group(1)
-    
+
     @handle_failure(log)
     def create_state(self):
         # set current state for class_a
         state = []
         file_list = list(
-                walk(
+            walk(
                 self.path))
         for (
-            index, (dirname, dirnames, filenames)) in enumerate(
-            file_list):
+                index, (dirname, dirnames, filenames)) in enumerate(
+                file_list):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
@@ -53,7 +53,7 @@ class Filesystem:
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
-    
+
     @handle_failure(log)
     def get_last_modified_time(self, filepath):
         return math.floor(path.getmtime(path.abspath(filepath)) / 10)
@@ -71,7 +71,7 @@ class Filesystem:
     def is_directory(self, filename):
         filename = path.normpath(self.path + filename)
         return path.isdir(filename)
-    
+
     @handle_failure(log)
     def create_directory(self, filename):
         filename = path.normpath(self.path + filename)

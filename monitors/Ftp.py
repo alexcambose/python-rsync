@@ -34,7 +34,7 @@ class Ftp:
             "host": x.group(3),
             "path": x.group(4),
         }
-    
+
     @handle_failure(log)
     def listdir(self, _path):
         """
@@ -63,7 +63,7 @@ class Ftp:
                     nondirs.append(
                         (name, modification_time))
             return dirs, nondirs
-    
+
     @handle_failure(log)
     def walk(self, filepath='/'):
         """
@@ -76,16 +76,16 @@ class Ftp:
             yield from self.walk(filepath)
             self.ftp.cwd('..')
             filepath = path.dirname(filepath)
-    
+
     @handle_failure(log)
     def create_state(self):
         state = []
         files = list(
-                self.walk(
+            self.walk(
                 self.path))
         for (
-            index, (dirname, dirnames, filenames)) in enumerate(
-           files ):
+                index, (dirname, dirnames, filenames)) in enumerate(
+                files):
             dirname = dirname.replace(self.path, '')
             real_path = path.normpath(self.path + dirname)
 
@@ -99,34 +99,34 @@ class Ftp:
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
-    
+
     @handle_failure(log)
     def parse_ftp_date(self, date_string):
         date_time_obj = datetime.datetime.strptime(
             date_string, '%Y%m%d%H%M%S')
         return math.floor(date_time_obj.timestamp() / 10)
-    
+
     @handle_failure(log)
     def read(self, filename):
         r = StringIO()
         # self.ftp.cwd('/')
         return r.getvalue()
-    
+
     @handle_failure(log)
     def create_directory(self, currentDir):
         log('Create directory ', currentDir)
         try:
             self.ftp.mkd(currentDir)
-        except:
+        except BaseException:
             # silent fail, directory already exists
             return
-    
+
     @handle_failure(log)
     def delete(self, filename):
         if self.is_directory(filename):
             return self.ftp.rmd(filename)
         return self.ftp.delete(filename)
-    
+
     @handle_failure(log)
     def is_directory(self, filename):
         current_state = self.state_manager.get_current_state()
@@ -135,12 +135,12 @@ class Ftp:
         for item in current_state:
             if item['path'] == filename:
                 return item['is_directory']
-    
+
     @handle_failure(log)
     def write(self, filename, content):
         bio = BytesIO(content)
         self.ftp.storbinary('STOR ' + filename, bio)
-    
+
     @handle_failure(log)
     def copy_from(self, class_b, filename):
         target_path = filename

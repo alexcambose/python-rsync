@@ -11,6 +11,7 @@ import ntpath
 import re
 from pathlib import Path
 
+
 def log(*content):
     print('[ZIP] ', *content)
 
@@ -37,13 +38,13 @@ class Zip:
         if self.zip_r:
             self.zip_r.close()
         self.zip_r = ZipFile(self.path, 'r')
-    
+
     @handle_failure(log)
     def open_write(self):
         if self.zip_w:
             self.zip_w.close()
         self.zip_w = ZipFile(self.path, 'a')
-    
+
     @handle_failure(log)
     def create_state(self):
         state = []
@@ -53,7 +54,8 @@ class Zip:
         # add nested folders if they doesn't exist
         for file in name_list:
             folder_path = str(Path(file).parent) + path.sep
-            if folder_path not in name_list and not self.zip_r.getinfo(file).is_dir() and folder_path != '.' + path.sep:
+            if folder_path not in name_list and not self.zip_r.getinfo(
+                    file).is_dir() and folder_path != '.' + path.sep:
                 state.append({'path': folder_path[:-1], 'is_directory': True})
         # set current state for class_a
         for file in name_list:
@@ -71,7 +73,7 @@ class Zip:
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
-    
+
     @handle_failure(log)
     def get_last_modified_time(self, zip_info):
         # (year, month, day, hour, minute, second) = zip_info.date_time
@@ -80,13 +82,13 @@ class Zip:
             date_string = date_string + str(item)
         date_time_obj = datetime.datetime.strptime(date_string, '%Y%m%d%H%M%S')
         return math.floor(date_time_obj.timestamp() / 10)
-    
+
     @handle_failure(log)
     def read(self, filename):
         for item in self.zip_r.infolist():
             if item.filename == filename:
                 return self.zip_r.read(item.filename).decode('utf-8')
-    
+
     @handle_failure(log)
     def is_directory(self, filename):
         current_state = self.state_manager.get_current_state()
@@ -94,7 +96,7 @@ class Zip:
         for item in current_state:
             if item['path'] == filename:
                 return item['is_directory']
-    
+
     @handle_failure(log)
     def create_directory(self, filename):
         zfi = ZipInfo(filename + '/')
@@ -102,7 +104,7 @@ class Zip:
         log('Creating directory', filename)
         self.open_read()
         self.open_write()
-    
+
     @handle_failure(log)
     def delete(self, filename):
         is_directory = self.is_directory(filename)
@@ -111,13 +113,14 @@ class Zip:
         for item in self.zip_r.infolist():
             buff = self.zip_r.read(item.filename)
             print(item.filename, filename)
-            if item.filename != filename and (is_directory and not item.filename.startswith(filename)):
+            if item.filename != filename and (
+                    is_directory and not item.filename.startswith(filename)):
                 zout.writestr(item, buff)
         zout.close()
         rename("./temp.zip",
                self.path)
         self.open_read()
-    
+
     @handle_failure(log)
     def write(self, filename, content):
         zout = ZipFile('./temp.zip', 'w')
@@ -135,7 +138,7 @@ class Zip:
         rename("./temp.zip",
                self.path)
         self.open_read()
-    
+
     @handle_failure(log)
     def copy_from(self, class_b, filename):
         target_path = filename
