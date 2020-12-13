@@ -14,6 +14,7 @@ if len(sys.argv) < 3:
 instances = [None, None]
 
 params = sys.argv[1:]
+# maximum 2
 for i in range(0, 2):
     match = Ftp.selector_matches(params[i])
     if match:
@@ -29,8 +30,9 @@ for i in range(0, 2):
         instances[i] = Zip(match)
         continue
     raise Exception(params[i] + ' is not a valid location')
-
+# initialise syncer
 syncer = Syncer(instances[0], instances[1])
+# file changes via polling
 while True:
     sleep(2)
     syncer.update()

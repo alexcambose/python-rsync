@@ -1,3 +1,6 @@
+"""
+Class for managing the ftp mode
+"""
 import datetime
 from os import walk, path, mkdir, remove, rmdir
 import math
@@ -9,10 +12,18 @@ import re
 
 
 def log(*content):
+    """
+    Logging function used for console logging
+    :param content: - The content that needs to be logged to the console
+    :return:
+    """
     print('[FTP] ', *content)
 
 
 class Ftp:
+    """
+    Handles ftp files
+    """
     def __init__(self, username, password, host, path):
         ftp = FTP(host)
         ftp.login(user=username, passwd=password)
@@ -24,6 +35,11 @@ class Ftp:
 
     @staticmethod
     def selector_matches(selector):
+        """
+        Checks if the specified selector is in the right format
+        :param selector: Mode selection string
+        :return: True if the specified string is in the correct format
+        """
         regex = r"ftp:(\S*):([\S]+)@([\S^.]+?)([~.\/].*)"
         x = re.search(regex, selector)
         if not x:
@@ -79,6 +95,10 @@ class Ftp:
 
     @handle_failure(log)
     def create_state(self):
+        """
+        Creates a state of the files
+        :return: Tuple of the current state and the previous state
+        """
         state = []
         files = list(
             self.walk(
@@ -102,33 +122,56 @@ class Ftp:
 
     @handle_failure(log)
     def parse_ftp_date(self, date_string):
+        """
+        Parse a date string
+        :param date_string: Date string
+        :return: Date timestamp
+        """
         date_time_obj = datetime.datetime.strptime(
             date_string, '%Y%m%d%H%M%S')
         return math.floor(date_time_obj.timestamp() / 10)
 
     @handle_failure(log)
     def read(self, filename):
+        """
+        Read the contents of a file
+        :param filename: File path
+        :return: The contents of the specified file
+        """
         r = StringIO()
         # self.ftp.cwd('/')
         return r.getvalue()
 
     @handle_failure(log)
-    def create_directory(self, currentDir):
-        log('Create directory ', currentDir)
+    def create_directory(self, filename):
+        """
+        Create a new directory
+        :param filename: Directory path
+        """
+        log('Create directory ', filename)
         try:
-            self.ftp.mkd(currentDir)
-        except BaseException:
+            self.ftp.mkd(filename)
+        except Exception:
             # silent fail, directory already exists
             return
 
     @handle_failure(log)
     def delete(self, filename):
+        """
+       Delete a file or directory
+       :param filename: File pth to be deleted
+       """
         if self.is_directory(filename):
             return self.ftp.rmd(filename)
         return self.ftp.delete(filename)
 
     @handle_failure(log)
     def is_directory(self, filename):
+        """
+        Checks to see whether the file specified is a directory
+        :param filename: File path
+        :return: True if the specified file is a directory
+        """
         current_state = self.state_manager.get_current_state()
         filename = path.join('/', filename)
         print(filename)
@@ -138,11 +181,21 @@ class Ftp:
 
     @handle_failure(log)
     def write(self, filename, content):
+        """
+        Write contents to a file
+        :param filename: File path
+        :param content: Content to be written
+        """
         bio = BytesIO(content)
         self.ftp.storbinary('STOR ' + filename, bio)
 
     @handle_failure(log)
     def copy_from(self, class_b, filename):
+        """
+        Copy filename from class_b
+        :param class_b: Class instance that will provide the contents of the file
+        :param filename: File path
+        """
         target_path = filename
         from_path = filename
         print(filename)

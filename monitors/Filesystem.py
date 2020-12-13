@@ -1,3 +1,6 @@
+"""
+Class for managing the filesystem mode
+"""
 from os import system, walk, path, mkdir, remove
 from shutil import rmtree
 import math
@@ -7,10 +10,18 @@ import re
 
 
 def log(*content):
+    """
+    Logging function used for console logging
+    :param content: - The content that needs to be logged to the console
+    :return:
+    """
     print('[FILESYSTEM] ', *content)
 
 
 class Filesystem:
+    """
+    Handles filesystem files
+    """
     def __init__(self, path):
         self.state_manager = StateManager()
         if path[-1] != '/':
@@ -19,6 +30,11 @@ class Filesystem:
 
     @staticmethod
     def selector_matches(selector):
+        """
+        Checks if the specified selector is in the right format
+        :param selector: Mode selection string
+        :return: True if the specified string is in the correct format
+        """
         regex = r"folder:(.*)"
         x = re.match(regex, selector)
         if not x:
@@ -27,6 +43,10 @@ class Filesystem:
 
     @handle_failure(log)
     def create_state(self):
+        """
+        Creates a state of the files
+        :return: Tuple of the current state and the previous state
+        """
         # set current state for class_a
         state = []
         file_list = list(
@@ -60,6 +80,11 @@ class Filesystem:
 
     @handle_failure(log)
     def read(self, filename):
+        """
+        Read the contents of a file
+        :param filename: File path
+        :return: The contents of the specified file
+        """
         filename = path.normpath(self.path + filename)
         log('Reading ', filename)
         f = open(filename, "rb")
@@ -69,25 +94,42 @@ class Filesystem:
 
     @handle_failure(log)
     def is_directory(self, filename):
+        """
+        Checks to see whether the file specified is a directory
+        :param filename: File path
+        :return: True if the specified file is a directory
+        """
         filename = path.normpath(self.path + filename)
         return path.isdir(filename)
 
     @handle_failure(log)
     def create_directory(self, filename):
+        """
+        Create a new directory
+        :param filename: Directory path
+        """
         filename = path.normpath(self.path + filename)
-
-        return mkdir(filename)
+        mkdir(filename)
 
     @handle_failure(log)
     def delete(self, filename):
+        """
+        Delete a file or directory
+        :param filename: File pth to be deleted
+        """
         file = path.normpath(self.path + filename)
         log('Delete from ', file)
         if self.is_directory(filename):
-            return rmtree(file)
-        return remove(file)
+            rmtree(file)
+        remove(file)
 
     @handle_failure(log)
     def copy_from(self, class_b, filename):
+        """
+        Copy filename from class_b
+        :param class_b: Class instance that will provide the contents of the file
+        :param filename: File path
+        """
         target_path = filename
         from_path = filename
         log(class_b, from_path, class_b.is_directory(from_path))

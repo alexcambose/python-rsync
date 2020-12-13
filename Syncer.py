@@ -74,7 +74,16 @@ class Syncer:
         # finally, run create state again to update the states after the changes
         self.class_a.create_state()
         self.class_b.create_state()
+
     def compute_states(self, state, previous_state, class_a, class_b):
+        """
+        Compares the current state with the previous state and executes commands from/to class_a and class_b to keeps files in sync
+        :param state: - Current state
+        :param previous_state: - Previous state
+        :param class_a: - Class instance from where the files are being copied
+        :param class_b: - Class instance to where the files are being copied
+        :return:
+        """
         for element_b in state:
             for element_a in previous_state:
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
@@ -93,6 +102,7 @@ class Syncer:
                         class_b.delete(element_c['path'])
                         return True
                 return True
+        # if the current state is empty and the previous state has files, delete them
         if len(state) == 0:
             for element_b in previous_state:
                 print('File {} deleted'.format(element_b))
@@ -107,7 +117,12 @@ class Syncer:
                     class_b.delete(element_b['path'])
                     return True
         return False
+
     def update(self):
+        """
+        Monitors file changes, called every x seconds
+        :return:
+        """
         print('UPDATE')
         (state_a, previous_state_a) = self.class_a.create_state()
         print('state_a         ', state_a)
@@ -126,7 +141,7 @@ class Syncer:
             self.class_b.create_state()
             self.update()
             return
-        modified = False
+        # check for differences between the current and previous states
         modified = self.compute_states(state_b, previous_state_b, self.class_b, self.class_a)
         if modified:
             print('REFRESH')
