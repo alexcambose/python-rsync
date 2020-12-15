@@ -2,13 +2,14 @@
 Class for managing the ftp mode
 """
 import datetime
-from os import walk, path, mkdir, remove, rmdir
 import math
-from utils import handle_failure
-from StateManager import StateManager
-from ftplib import FTP
-from io import StringIO, BytesIO
 import re
+from ftplib import FTP
+from io import BytesIO, StringIO
+from os import mkdir, path, remove, rmdir, walk
+
+from StateManager import StateManager
+from utils import handle_failure, retry_function
 
 
 def log(*content):
@@ -70,7 +71,7 @@ class Ftp:
                 'LIST', lambda x: file_list.append(x.split()))
             # parse each file info result
             for info in file_list:
-                ls_type, name = info[0], info[-1]
+                ls_type, name = info[0], ' '.join(info[8:])
                 if ls_type.startswith('d'):
                     dirs.append(name)
                 else:
@@ -132,15 +133,20 @@ class Ftp:
         return math.floor(date_time_obj.timestamp() / 10)
 
     @handle_failure(log)
-    def read(self, filename):
+    def read(self, filepath):
         """
         Read the contents of a file
-        :param filename: File path
+        :param filepath: File path
         :return: The contents of the specified file
         """
-        r = StringIO()
-        # self.ftp.cwd('/')
-        return r.getvalue()
+        directory_name, file_name = path.split(path.normpath(self.path + filepath))
+        r = BytesIO()
+        print(path.join(directory_name, file_name))
+        self.ftp.cwd(directory_name)
+        self.ftp.retrbinary('RETR ' + path.join(directory_name, file_name), r.write)
+
+        contents = r.getvalue()
+        return contents
 
     @handle_failure(log)
     def create_directory(self, filename):
@@ -155,6 +161,7 @@ class Ftp:
             # silent fail, directory already exists
             return
 
+    @retry_function(2)
     @handle_failure(log)
     def delete(self, filename):
         """
@@ -173,12 +180,12 @@ class Ftp:
         :return: True if the specified file is a directory
         """
         current_state = self.state_manager.get_current_state()
-        filename = path.join('/', filename)
-        print(filename)
         for item in current_state:
             if item['path'] == filename:
                 return item['is_directory']
-
+        
+    
+    @retry_function(2)
     @handle_failure(log)
     def write(self, filename, content):
         """
@@ -187,8 +194,10 @@ class Ftp:
         :param content: Content to be written
         """
         bio = BytesIO(content)
+        log('Write ', bio)
         self.ftp.storbinary('STOR ' + filename, bio)
 
+    @retry_function(2)
     @handle_failure(log)
     def copy_from(self, class_b, filename):
         """
@@ -198,7 +207,6 @@ class Ftp:
         """
         target_path = filename
         from_path = filename
-        print(filename)
         if target_path[0] == '/':
             target_path = '.' + target_path
         if class_b.is_directory(from_path):
