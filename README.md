@@ -59,3 +59,9 @@ $ python3 main.py ftp:my_user:1234@127.0.0.1/folder zip:C:\aaa
 ├── Syncer.py - Manages the changes that are broadcasted by the monitors
 └── utils.py - Miscellaneous helper functions
 ```
+
+##### More examples of commands
+
+```
+python3 main.py folder:./test/a/ ftp:alex:1324@localhost/home/alex/Desktop/python-rsync/test/b/
+```
