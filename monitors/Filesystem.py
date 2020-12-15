@@ -1,12 +1,13 @@
 """
 Class for managing the filesystem mode
 """
-from os import system, walk, path, mkdir, remove
-from shutil import rmtree
 import math
-from utils import handle_failure
-from StateManager import StateManager
 import re
+from os import mkdir, path, remove, system, walk
+from shutil import rmtree
+
+from StateManager import StateManager
+from utils import handle_failure
 
 
 def log(*content):
@@ -117,11 +118,12 @@ class Filesystem:
         Delete a file or directory
         :param filename: File pth to be deleted
         """
-        file = path.normpath(self.path + filename)
-        log('Delete from ', file)
+        file = path.abspath(path.normpath(self.path + filename + '/'))
+        log('Delete from ', file, self.is_directory(filename))
         if self.is_directory(filename):
             rmtree(file)
-        remove(file)
+        else:
+            remove(file)
 
     @handle_failure(log)
     def copy_from(self, class_b, filename):
@@ -132,7 +134,7 @@ class Filesystem:
         """
         target_path = filename
         from_path = filename
-        log(class_b, from_path, class_b.is_directory(from_path))
+        log('reading ', from_path , 'from class b',  class_b.is_directory(from_path))
         if class_b.is_directory(from_path):
             log('Create dir from ', from_path, 'to', target_path)
             self.create_directory(target_path)
@@ -140,6 +142,6 @@ class Filesystem:
             log('Copy from ', from_path, 'to',
                 path.normpath(self.path + target_path))
             contents = class_b.read(from_path)
-            f = open(path.normpath(self.path + target_path), 'w')
+            f = open(path.normpath(self.path + target_path), 'wb')
             f.write(contents)
             f.close()

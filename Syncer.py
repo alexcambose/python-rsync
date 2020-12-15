@@ -74,7 +74,6 @@ class Syncer:
         # finally, run create state again to update the states after the changes
         self.class_a.create_state()
         self.class_b.create_state()
-
     def compute_states(self, state, previous_state, class_a, class_b):
         """
         Compares the current state with the previous state and executes commands from/to class_a and class_b to keeps files in sync
@@ -84,13 +83,15 @@ class Syncer:
         :param class_b: - Class instance to where the files are being copied
         :return:
         """
+        modified = False
         for element_b in state:
             for element_a in previous_state:
+                # element already exists
                 if element_a['path'] == element_b['path'] and element_b['is_directory'] == element_a[
                         'is_directory'] and not element_a['is_directory']:
                     if element_a['last_modified'] > element_b['last_modified']:
                         class_b.copy_from(class_a, element_a['path'])
-                        return True
+                        modified = True
             # new file added
             if element_b not in previous_state:
                 print('File {} added'.format(element_b))
@@ -100,23 +101,24 @@ class Syncer:
                     if element_c not in state:
                         print('File {} deleted (moved)'.format(element_c))
                         class_b.delete(element_c['path'])
-                        return True
-                return True
-        # if the current state is empty and the previous state has files, delete them
-        if len(state) == 0:
-            for element_b in previous_state:
-                print('File {} deleted'.format(element_b))
-                class_b.delete(element_b['path'])
-                return True
+                        modified = True
+                modified = True             
         # check for removed files
         for element_b in previous_state:
-            for element_a in state:
-                # if an element from the previous state does not exist in the current state
-                if element_b not in state:
-                    print('File {} deleted'.format(element_b))
-                    class_b.delete(element_b['path'])
-                    return True
-        return False
+            # if the current state is empty and the previous state has files, delete them
+            if len(state) == 0:
+                class_b.delete(element_b['path'])
+                print('File {} deleted'.format(element_b), previous_state)
+                modified = True
+            else:
+                for element_a in state:
+                    # if an element from the previous state does not exist in the current state
+                    if element_b not in state:
+                        class_b.delete(element_b['path'])
+                        print('File {} deleted (previous state)'.format(element_b))
+                        modified = True
+                        break
+        return modified
 
     def update(self):
         """

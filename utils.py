@@ -26,3 +26,18 @@ def handle_failure(log_func = print, stop_execution = True):
                 if stop_execution: raise e
         return applicator
     return decorate
+
+def retry_function(times_number = 2):
+    """
+    decorator for re-running non deterministic code
+    """
+    def decorate(f):
+        def applicator(*args, **kwargs):
+            for i in range(times_number):
+                try:
+                    return f(*args,**kwargs)
+                except Exception:
+                   pass
+        return applicator
+    return decorate
+
