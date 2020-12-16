@@ -25,6 +25,7 @@ class Zip:
     """
     Handles zip files
     """
+
     def __init__(self, path):
         self.state_manager = StateManager()
         self.path = path
@@ -92,9 +93,9 @@ class Zip:
                     {'path': file, 'is_directory': False,
                      'last_modified': self.get_last_modified_time(info)})
         # # add top level folder
-        # if len(name_list) > 0 and name_list[0].split('/')[0] + '/' not in name_list:
+        # if len(name_list) > 0 and name_list[0].split(path.sep)[0] + path.sep not in name_list:
         #     state.insert(0, {'path':   name_list[0].split(
-        #         '/')[0], 'is_directory': True})
+        #         path.sep)[0], 'is_directory': True})
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
@@ -111,7 +112,7 @@ class Zip:
         for item in zip_info.date_time:
             date_string = date_string + str(item)
         date_time_obj = datetime.datetime.strptime(date_string, '%Y%m%d%H%M%S')
-        return math.floor(date_time_obj.timestamp() / 1)
+        return math.floor(date_time_obj.timestamp() / 2)
 
     @handle_failure(log)
     def read(self, filename):
@@ -143,7 +144,7 @@ class Zip:
         Create a new directory
         :param filename: Directory path
         """
-        zfi = ZipInfo(filename + '/')
+        zfi = ZipInfo(filename + path.sep)
         self.zip_w.writestr(zfi, '')
         log('Creating directory', filename)
         self.open_read()

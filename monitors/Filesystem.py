@@ -23,11 +23,12 @@ class Filesystem:
     """
     Handles filesystem files
     """
-    def __init__(self, path):
+
+    def __init__(self, target_path):
         self.state_manager = StateManager()
-        if path[-1] != '/':
-            path = path + '/'
-        self.path = path
+        if target_path[-1] != path.sep:
+            target_path = target_path + path.sep
+        self.path = target_path
 
     @staticmethod
     def selector_matches(selector):
@@ -77,7 +78,7 @@ class Filesystem:
 
     @handle_failure(log)
     def get_last_modified_time(self, filepath):
-        return math.floor(path.getmtime(path.abspath(filepath)) / 1)
+        return math.floor(path.getmtime(path.abspath(filepath)) / 2)
 
     @handle_failure(log)
     def read(self, filename):
@@ -118,7 +119,7 @@ class Filesystem:
         Delete a file or directory
         :param filename: File pth to be deleted
         """
-        file = path.abspath(path.normpath(self.path + filename + '/'))
+        file = path.abspath(path.normpath(self.path + filename + path.sep))
         log('Delete from ', file, self.is_directory(filename))
         if self.is_directory(filename):
             rmtree(file)
@@ -134,7 +135,8 @@ class Filesystem:
         """
         target_path = filename
         from_path = filename
-        log('reading ', from_path , 'from class b',  class_b.is_directory(from_path))
+        log('reading ', from_path, 'from class b',
+            class_b.is_directory(from_path))
         if class_b.is_directory(from_path):
             log('Create dir from ', from_path, 'to', target_path)
             self.create_directory(target_path)

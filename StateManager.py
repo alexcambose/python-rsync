@@ -5,7 +5,6 @@ from copy import deepcopy
 from utils import sort_state
 
 
-
 class StateManager:
     """
     Keeps the current and previous states in sync
@@ -15,7 +14,7 @@ class StateManager:
         self.previous_state = []
         self.current_state = []
 
-    def set_state(self, state = []):
+    def set_state(self, state=[]):
         """
     `   set current state
         """
