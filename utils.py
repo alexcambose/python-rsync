@@ -41,3 +41,11 @@ def retry_function(times_number = 2):
         return applicator
     return decorate
 
+def sort_state(state, delete_optimized = False):
+    """
+    sort by nesting level
+    """
+    def func(a):
+        count = a['path'].count('/')
+        return count
+    return sorted(state,key=func, reverse=delete_optimized)

@@ -1,8 +1,8 @@
 """
 Syncer class
 """
-from utils import remove_dictionary_key
-
+from utils import remove_dictionary_key, sort_state
+from copy import deepcopy
 
 class Syncer:
     """
@@ -20,12 +20,35 @@ class Syncer:
         initial sync between two locations
         :return:
         """
-        (state_a, previous_state_a) = self.class_a.create_state()
-        (state_b, previous_state_b) = self.class_b.create_state()
+
+        state_a = self.class_a.create_state()[0]
+        state_b = self.class_b.create_state()[0]
+        state_a = remove_dictionary_key(state_a, 'last_modified')
+        state_b = remove_dictionary_key(state_b, 'last_modified')
+        state_a = sort_state(state_a)
+        state_b = sort_state(state_b)
+        print('a', state_a)
+        print('b', state_b)
+        print('')
+        # copy missing files
+        for i in range(max(len(state_a), len(state_b))):
+            if i < len(state_a) and state_a[i] not in state_b:
+                self.class_b.copy_from(self.class_a, state_a[i]['path'])
+            if i < len(state_b) and state_b[i] not in state_a:
+                self.class_a.copy_from(self.class_b, state_b[i]['path'])
+
+        # refresh state
+        state_a = self.class_a.create_state()[0]
+        state_b = self.class_b.create_state()[0]
         # compare if there new, modified or deleted files between states
+
 
         state_a = list(filter(lambda x: x['is_directory'] == False, state_a))
         state_b = list(filter(lambda x: x['is_directory'] == False, state_b))
+
+        state_a = sort_state(state_a)
+        state_b = sort_state(state_b)
+        
         print(state_a)
         print(state_b)
         print('')
@@ -48,29 +71,7 @@ class Syncer:
                         else:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
-                    # the locations are matching and they are not a directory
-                    if state_b[i]['path'] == state_a[j]['path'] and state_b[i]['is_directory'] == state_a[
-                            j]['is_directory'] and state_b[i]['last_modified'] != state_a[j]['last_modified']:
-                        if state_b[i]['last_modified'] < state_a[j][
-                                'last_modified']:
-                            self.class_b.copy_from(
-                                self.class_a, state_a[i]['path'])
-                        else:
-                            self.class_a.copy_from(
-                                self.class_b, state_b[i]['path'])
-        state_a = self.class_a.create_state()[0]
-        state_b = self.class_b.create_state()[0]
-        state_a = remove_dictionary_key(state_a, 'last_modified')
-        state_b = remove_dictionary_key(state_b, 'last_modified')
-        print('a', state_a)
-        print('b', state_b)
-        print('')
-        # copy missing files
-        for i in range(max(len(state_a), len(state_b))):
-            if i < len(state_a) and state_a[i] not in state_b:
-                self.class_b.copy_from(self.class_a, state_a[i]['path'])
-            if i < len(state_b) and state_b[i] not in state_a:
-                self.class_a.copy_from(self.class_b, state_b[i]['path'])
+       
         # finally, run create state again to update the states after the changes
         self.class_a.create_state()
         self.class_b.create_state()
@@ -83,6 +84,10 @@ class Syncer:
         :param class_b: - Class instance to where the files are being copied
         :return:
         """
+        state = sort_state(state)
+        previous_state = sort_state(previous_state)
+        print(state)
+        print(previous_state)
         modified = False
         for element_b in state:
             for element_a in previous_state:
@@ -97,12 +102,17 @@ class Syncer:
                 print('File {} added'.format(element_b))
                 class_b.copy_from(class_a, element_b['path'])
                 # new file could be added by moving, therefore we need to check for deleted files also
-                for element_c in previous_state:
+                for element_c in sort_state(previous_state, True):
                     if element_c not in state:
                         print('File {} deleted (moved)'.format(element_c))
                         class_b.delete(element_c['path'])
                         modified = True
-                modified = True             
+                modified = True   
+
+        state = sort_state(state, True)
+        previous_state = sort_state(previous_state, True)
+        
+          
         # check for removed files
         for element_b in previous_state:
             # if the current state is empty and the previous state has files, delete them
@@ -127,22 +137,17 @@ class Syncer:
         """
         print('UPDATE')
         (state_a, previous_state_a) = self.class_a.create_state()
-        print('state_a         ', state_a)
-        print('previous_state_a', previous_state_a)
-        print()
 
         (state_b, previous_state_b) = self.class_b.create_state()
-        print('state_b         ', state_b)
-        print('previous_state_b', previous_state_b)
-        print()
         # check for differences between the current and previous states
-        modified = False
+        print('a')
         modified = self.compute_states(state_a, previous_state_a, self.class_a, self.class_b)
         if modified:
             print('REFRESH')
             self.class_b.create_state()
             self.update()
             return
+        print('b')
         # check for differences between the current and previous states
         modified = self.compute_states(state_b, previous_state_b, self.class_b, self.class_a)
         if modified:

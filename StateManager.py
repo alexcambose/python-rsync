@@ -2,9 +2,9 @@
 StateManager class
 """
 from copy import deepcopy
+from utils import sort_state
 
-def sortFunc(e):
-  return e['is_directory']
+
 
 class StateManager:
     """
@@ -20,8 +20,7 @@ class StateManager:
     `   set current state
         """
         self.previous_state = deepcopy(self.current_state)
-        state.sort(key=sortFunc)
-        self.current_state = state
+        self.current_state = sort_state(state)
 
     def get_current_state(self):
         """

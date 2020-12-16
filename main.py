@@ -1,3 +1,4 @@
+from utils import sort_state
 from Syncer import Syncer
 import sys
 from time import sleep
