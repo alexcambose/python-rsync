@@ -4,6 +4,13 @@ Syncer class
 from utils import remove_dictionary_key, sort_state
 from copy import deepcopy
 
+def log(*content):
+    """
+    Logging function used for console logging
+    :param content: - The content that needs to be logged to the console
+    :return:
+    """
+    print('[SYNCER] ', *content)
 class Syncer:
     """
     The bridge between modes, check for file changes.
@@ -27,9 +34,9 @@ class Syncer:
         state_b = remove_dictionary_key(state_b, 'last_modified')
         state_a = sort_state(state_a)
         state_b = sort_state(state_b)
-        print('a', state_a)
-        print('b', state_b)
-        print('')
+        log('a', state_a)
+        log('b', state_b)
+        log('')
         # copy missing files
         for i in range(max(len(state_a), len(state_b))):
             if i < len(state_a) and state_a[i] not in state_b:
@@ -49,9 +56,9 @@ class Syncer:
         state_a = sort_state(state_a)
         state_b = sort_state(state_b)
         
-        print(state_a)
-        print(state_b)
-        print('')
+        log(state_a)
+        log(state_b)
+        log('')
         # compare file last_modified
         for i in range(max(len(state_a), len(state_b))):
             # we have a difference
@@ -86,8 +93,8 @@ class Syncer:
         """
         state = sort_state(state)
         previous_state = sort_state(previous_state)
-        print(state)
-        print(previous_state)
+        log(state)
+        log(previous_state)
         modified = False
         for element_b in state:
             for element_a in previous_state:
@@ -97,17 +104,18 @@ class Syncer:
                     if element_a['last_modified'] > element_b['last_modified']:
                         class_b.copy_from(class_a, element_a['path'])
                         modified = True
+            
             # new file added
             if element_b not in previous_state:
-                print('File {} added'.format(element_b))
+                log('File {} added'.format(element_b))
                 class_b.copy_from(class_a, element_b['path'])
                 # new file could be added by moving, therefore we need to check for deleted files also
                 for element_c in sort_state(previous_state, True):
                     if element_c not in state:
-                        print('File {} deleted (moved)'.format(element_c))
+                        log('File {} deleted (moved)'.format(element_c))
                         class_b.delete(element_c['path'])
                         modified = True
-                modified = True   
+                return True   
 
         state = sort_state(state, True)
         previous_state = sort_state(previous_state, True)
@@ -117,15 +125,15 @@ class Syncer:
         for element_b in previous_state:
             # if the current state is empty and the previous state has files, delete them
             if len(state) == 0:
+                log('File {} deleted'.format(element_b), previous_state)
                 class_b.delete(element_b['path'])
-                print('File {} deleted'.format(element_b), previous_state)
                 modified = True
             else:
                 for element_a in state:
                     # if an element from the previous state does not exist in the current state
                     if element_b not in state:
+                        log('File {} deleted (previous state)'.format(element_b))
                         class_b.delete(element_b['path'])
-                        print('File {} deleted (previous state)'.format(element_b))
                         modified = True
                         break
         return modified
@@ -135,23 +143,23 @@ class Syncer:
         Monitors file changes, called every x seconds
         :return:
         """
-        print('UPDATE')
+        log('UPDATE')
         (state_a, previous_state_a) = self.class_a.create_state()
 
         (state_b, previous_state_b) = self.class_b.create_state()
         # check for differences between the current and previous states
-        print('a')
+        log('a')
         modified = self.compute_states(state_a, previous_state_a, self.class_a, self.class_b)
         if modified:
-            print('REFRESH')
+            log('REFRESH')
             self.class_b.create_state()
             self.update()
             return
-        print('b')
+        log('b')
         # check for differences between the current and previous states
         modified = self.compute_states(state_b, previous_state_b, self.class_b, self.class_a)
         if modified:
-            print('REFRESH')
+            log('REFRESH')
             self.class_a.create_state()
             self.update()
         if str(state_a) != str(state_b):

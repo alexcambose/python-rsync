@@ -3,7 +3,7 @@ Class for managing the filesystem mode
 """
 import math
 import re
-from os import mkdir, path, remove, system, walk
+from os import mkdir, path, remove, walk
 from shutil import rmtree
 
 from StateManager import StateManager
@@ -77,7 +77,7 @@ class Filesystem:
 
     @handle_failure(log)
     def get_last_modified_time(self, filepath):
-        return math.floor(path.getmtime(path.abspath(filepath)) / 10)
+        return math.floor(path.getmtime(path.abspath(filepath)) / 1)
 
     @handle_failure(log)
     def read(self, filename):

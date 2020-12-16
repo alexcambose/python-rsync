@@ -111,7 +111,7 @@ class Zip:
         for item in zip_info.date_time:
             date_string = date_string + str(item)
         date_time_obj = datetime.datetime.strptime(date_string, '%Y%m%d%H%M%S')
-        return math.floor(date_time_obj.timestamp() / 10)
+        return math.floor(date_time_obj.timestamp() / 1)
 
     @handle_failure(log)
     def read(self, filename):
@@ -122,7 +122,7 @@ class Zip:
         """
         for item in self.zip_r.infolist():
             if item.filename == filename:
-                return self.zip_r.read(item.filename).decode('utf-8')
+                return self.zip_r.read(item.filename)
 
     @handle_failure(log)
     def is_directory(self, filename):

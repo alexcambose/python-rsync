@@ -130,7 +130,7 @@ class Ftp:
         """
         date_time_obj = datetime.datetime.strptime(
             date_string, '%Y%m%d%H%M%S')
-        return math.floor(date_time_obj.timestamp() / 10)
+        return math.floor(date_time_obj.timestamp() / 1)
 
     @handle_failure(log)
     def read(self, filepath):
@@ -144,6 +144,7 @@ class Ftp:
         print(path.join(directory_name, file_name))
         self.ftp.cwd(directory_name)
         self.ftp.retrbinary('RETR ' + path.join(directory_name, file_name), r.write)
+        self.ftp.cwd(self.path)
 
         contents = r.getvalue()
         return contents
@@ -194,7 +195,7 @@ class Ftp:
         :param content: Content to be written
         """
         bio = BytesIO(content)
-        log('Write ', bio)
+        log('Write ', filename, bio)
         self.ftp.storbinary('STOR ' + filename, bio)
 
     @retry_function(2)
