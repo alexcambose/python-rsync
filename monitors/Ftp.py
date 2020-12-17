@@ -28,7 +28,12 @@ class Ftp:
 
     def __init__(self, username, password, host, path):
         ftp = FTP(host)
-        ftp.login(user=username, passwd=password)
+        try:
+            ftp.login(user=username, passwd=password)
+        except:
+            log('Incorrect credentials')
+            exit()
+
         log('Connected to {} with username {} and password {} on path {}'.format(
             host, username, password, path))
         self.ftp = ftp
@@ -106,10 +111,9 @@ class Ftp:
             self.walk(
                 self.path))
         for (
-                index, (dirname, dirnames, filenames)) in enumerate(
+                index, (dirname, _, filenames)) in enumerate(
                 files):
             dirname = dirname.replace(self.path, '')
-            real_path = path.normpath(self.path + dirname)
 
             # ignore the first directory
             if index > 0:
@@ -123,6 +127,7 @@ class Ftp:
         ), self.state_manager.get_previous_state()
 
     @handle_failure(log)
+    @retry_function(2)
     def parse_ftp_date(self, date_string):
         """
         Parse a date string
@@ -134,6 +139,7 @@ class Ftp:
         return math.floor(date_time_obj.timestamp() / 2)
 
     @handle_failure(log)
+    @retry_function(2)
     def read(self, filepath):
         """
         Read the contents of a file
@@ -143,7 +149,6 @@ class Ftp:
         directory_name, file_name = path.split(
             path.normpath(self.path + filepath))
         r = BytesIO()
-        print(path.join(directory_name, file_name))
         self.ftp.cwd(directory_name)
         self.ftp.retrbinary(
             'RETR ' +
@@ -157,6 +162,7 @@ class Ftp:
         return contents
 
     @handle_failure(log)
+    @retry_function(2)
     def create_directory(self, filename):
         """
         Create a new directory
@@ -169,8 +175,8 @@ class Ftp:
             # silent fail, directory already exists
             return
 
-    @retry_function(2)
     @handle_failure(log)
+    @retry_function(2)
     def delete(self, filename):
         """
        Delete a file or directory
@@ -192,8 +198,8 @@ class Ftp:
             if item['path'] == filename:
                 return item['is_directory']
 
-    @retry_function(2)
     @handle_failure(log)
+    @retry_function(2)
     def write(self, filename, content):
         """
         Write contents to a file
@@ -201,11 +207,11 @@ class Ftp:
         :param content: Content to be written
         """
         bio = BytesIO(content)
-        log('Write ', filename, bio)
+        log('Writing to', filename)
         self.ftp.storbinary('STOR ' + filename, bio)
 
-    @retry_function(2)
     @handle_failure(log)
+    @retry_function(2)
     def copy_from(self, class_b, filename):
         """
         Copy filename from class_b

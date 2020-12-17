@@ -1,4 +1,3 @@
-from utils import sort_state
 from Syncer import Syncer
 import sys
 from time import sleep
@@ -6,7 +5,6 @@ from time import sleep
 from monitors.Filesystem import Filesystem
 from monitors.Ftp import Ftp
 from monitors.Zip import Zip
-
 # check number of arguments
 if len(sys.argv) < 3:
     print("Invalid number of arguments")

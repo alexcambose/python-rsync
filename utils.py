@@ -37,11 +37,12 @@ def retry_function(times_number=2):
     """
     def decorate(f):
         def applicator(*args, **kwargs):
-            for i in range(times_number):
+            for i in range(times_number-1):
                 try:
                     return f(*args, **kwargs)
                 except Exception:
                     pass
+            return f(*args, **kwargs)
         return applicator
     return decorate
 
