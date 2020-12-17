@@ -8,6 +8,7 @@ from monitors.Zip import Zip
 # check number of arguments
 if len(sys.argv) < 3:
     print("Invalid number of arguments")
+    exit()
 
 # array that will hold the handlers instance
 instances = [None, None]
