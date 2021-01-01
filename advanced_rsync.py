@@ -30,9 +30,12 @@ for i in range(0, 2):
         instances[i] = Zip(match)
         continue
     raise Exception(params[i] + ' is not a valid location')
+
 # initialise syncer
-syncer = Syncer(instances[0], instances[1])
+# syncer = Syncer(instances[0], instances[1])
 # file changes via polling
-while True:
-    sleep(2)
-    syncer.update()
+# while True:
+#     sleep(2)
+#     syncer.update()
+# print(instances[0].create_file_hash('fisier'))
+print(instances[0].create_file_hash('fisier'))

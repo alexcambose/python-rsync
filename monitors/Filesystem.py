@@ -5,9 +5,11 @@ import math
 import re
 from os import mkdir, path, remove, walk
 from shutil import rmtree
+import sys
+import hashlib
 
 from StateManager import StateManager
-from utils import handle_failure
+from utils import create_hash, handle_failure
 
 
 def log(*content):
@@ -55,10 +57,9 @@ class Filesystem:
             walk(
                 self.path))
         for (
-                index, (dirname, dirnames, filenames)) in enumerate(
+                index, (dirname, _, filenames)) in enumerate(
                 file_list):
             dirname = dirname.replace(self.path, '')
-            real_path = path.normpath(self.path + dirname)
 
             if index > 0:
                 state.append({'path': dirname, 'is_directory': True})
@@ -68,6 +69,7 @@ class Filesystem:
                     {
                         'path': path_with_file,
                         'is_directory': False,
+                        'file_size': self.get_file_size(path_with_file),
                         'last_modified': self.get_last_modified_time(
                             path.join(
                                 self.path,
@@ -76,10 +78,7 @@ class Filesystem:
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
 
-    @handle_failure(log)
-    def get_last_modified_time(self, filepath):
-        return math.floor(path.getmtime(path.abspath(filepath)) / 2)
-
+  
     @handle_failure(log)
     def read(self, filename):
         """
@@ -103,7 +102,11 @@ class Filesystem:
         """
         filename = path.normpath(self.path + filename)
         return path.isdir(filename)
-
+    
+    @handle_failure(log)
+    def get_last_modified_time(self, filepath):
+        return math.floor(path.getmtime(path.abspath(filepath)) / 2)
+    
     @handle_failure(log)
     def create_directory(self, filename):
         """
@@ -147,3 +150,7 @@ class Filesystem:
             f = open(path.normpath(self.path + target_path), 'wb')
             f.write(contents)
             f.close()
+    def create_file_hash(self, filename):
+      return create_hash(path.join(self.path, filename))
+    def get_file_size(self, filename):
+        return path.getsize(path.normpath(self.path + filename))

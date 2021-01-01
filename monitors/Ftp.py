@@ -2,6 +2,7 @@
 Class for managing the ftp mode
 """
 import datetime
+import hashlib
 import math
 import re
 from ftplib import FTP
@@ -75,16 +76,18 @@ class Ftp:
 
             self.ftp.retrlines(
                 'LIST', lambda x: file_list.append(x.split()))
+            print(file_list)
             # parse each file info result
             for info in file_list:
-                ls_type, name = info[0], ' '.join(info[8:])
+                ls_type, name, size = info[0], ' '.join(info[8:]), info[4]
                 if ls_type.startswith('d'):
                     dirs.append(name)
                 else:
                     modification_time = self.parse_ftp_date(self.ftp.voidcmd(
                         f"MDTM " + name).split()[-1])
+                    
                     nondirs.append(
-                        (name, modification_time))
+                        (name, modification_time, int(size)))
             return dirs, nondirs
 
     @handle_failure(log)
@@ -118,10 +121,10 @@ class Ftp:
             # ignore the first directory
             if index > 0:
                 state.append({'path': dirname, 'is_directory': True})
-            for (filename, last_modified) in filenames:
+            for (filename, last_modified, size) in filenames:
                 path_with_file = path.join(dirname, filename)
                 state.append({'path': path_with_file, 'is_directory': False,
-                              'last_modified': last_modified})
+                              'last_modified': last_modified, 'size': size})
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
@@ -228,3 +231,10 @@ class Ftp:
         else:
             log('Copy', from_path, 'to', target_path)
             self.write(target_path, class_b.read(from_path))
+    
+    @handle_failure(log)
+    @retry_function(2)
+    def create_file_hash(self, filename):
+        m = hashlib.sha1()
+        self.ftp.retrbinary('RETR ' + self.path + filename, m.update)
+        return m.hexdigest()

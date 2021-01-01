@@ -63,6 +63,7 @@ $ python3 main.py ftp:my_user:1234@127.0.0.1/folder zip:C:\aaa
 ##### More examples of commands
 
 ```
-python3 main.py folder:./test/a/ ftp:alex:1324@localhost/home/alex/Desktop/python-rsync/test/b/
-python3 main.py zip:./test/a/file.zip ftp:alex:1324@localhost/home/alex/Desktop/python-rsync/test/b/
+python3 advanced_rsync.py folder:./test/a/ ftp:alex:1324@localhost/home/alex/Desktop/python-rsync/test/b/
+python3 advanced_rsync.py zip:./test/a/file.zip ftp:alex:1324@localhost/home/alex/Desktop/python-rsync/test/b/
+python3 advanced_rsync.py folder:./test/a/ folder:./test/b/
 ```

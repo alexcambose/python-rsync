@@ -1,15 +1,17 @@
 """
 Class for managing the zip mode
     """
-from os import name, walk, path, mkdir, remove, rmdir, rename
-import math
-from utils import handle_failure
-from StateManager import StateManager
-from zipfile import ZipFile, ZipInfo
 import datetime
+import math
 import ntpath
 import re
+import tempfile
+from os import mkdir, name, path, remove, rename, rmdir, walk
 from pathlib import Path
+from zipfile import ZipFile, ZipInfo
+
+from StateManager import StateManager
+from utils import create_hash, handle_failure
 
 
 def log(*content):
@@ -90,7 +92,7 @@ class Zip:
                 state.append({'path': file[:-1], 'is_directory': True})
             else:
                 state.append(
-                    {'path': file, 'is_directory': False,
+                    {'path': file, 'is_directory': False,'file_size': info.file_size,
                      'last_modified': self.get_last_modified_time(info)})
         # # add top level folder
         # if len(name_list) > 0 and name_list[0].split(path.sep)[0] + path.sep not in name_list:
@@ -210,3 +212,9 @@ class Zip:
                 target_path)
             contents = class_b.read(from_path)
             self.write(filename, contents)
+    def create_file_hash(self, filename):
+        with tempfile.TemporaryDirectory() as dirpath:
+            tempfilename = path.join(dirpath, filename)
+            with open(tempfilename, 'wb') as f:
+                f.write(self.read(filename))
+            return create_hash(tempfilename)

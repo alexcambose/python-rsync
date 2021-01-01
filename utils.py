@@ -2,7 +2,7 @@
 utility functions
 """
 from os import path
-
+import hashlib
 
 def remove_dictionary_key(dictionary_array, key):
     """
@@ -55,3 +55,19 @@ def sort_state(state, delete_optimized=False):
         count = a['path'].count(path.sep)
         return count
     return sorted(state, key=func, reverse=delete_optimized)
+
+
+def create_hash(file):
+    """
+    create file hash
+    """
+    BUF_SIZE = 65536 
+    sha1 = hashlib.sha1()
+
+    with open(file, 'rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            sha1.update(data)
+    return sha1.hexdigest();

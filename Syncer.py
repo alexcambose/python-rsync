@@ -61,6 +61,8 @@ class Syncer:
         log(state_a)
         log(state_b)
         log('')
+        # element_a 804100188 size: 17 bytes
+        # element_b 804100189 size: 16 bytes
         # compare file last_modified
         for i in range(max(len(state_a), len(state_b))):
             # we have a difference
@@ -105,9 +107,15 @@ class Syncer:
                 # element already exists
                 if element_a['path'] == element_b['path'] and element_b[
                         'is_directory'] == element_a['is_directory'] and not element_a['is_directory']:
+                    
                     if element_a['last_modified'] > element_b['last_modified']:
                         class_b.copy_from(class_a, element_a['path'])
                         modified = True
+                    if element_a['last_modified'] == element_b['last_modified']:
+                        if element_a['file_size'] != element_b['file_size']:
+                            class_b.copy_from(class_a, element_a['path'])
+                        elif class_a.create_file_hash(element_a['path']) != class_b.create_file_hash(element_b['path']):
+                            class_b.copy_from(class_a, element_a['path'])
 
             # new file added
             if element_b not in previous_state:
