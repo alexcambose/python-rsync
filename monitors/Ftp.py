@@ -76,7 +76,6 @@ class Ftp:
 
             self.ftp.retrlines(
                 'LIST', lambda x: file_list.append(x.split()))
-            print(file_list)
             # parse each file info result
             for info in file_list:
                 ls_type, name, size = info[0], ' '.join(info[8:]), info[4]

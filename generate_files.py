@@ -24,6 +24,8 @@ location_b = './test/b'
 
 # create_file(location_a, 'fisier');
 change_modification_time(location_a, 'fisier', 123)
+change_modification_time(location_b, 'fisier', 123)
 # create_file(location_b, 'fisier');
 
-change_file_contents(location_a, 'fisier', 'ceva');
+change_file_contents(location_a, 'fisier', '1113');
+change_file_contents(location_b, 'fisier', '1111');

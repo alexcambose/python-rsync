@@ -4,13 +4,14 @@ utility functions
 from os import path
 import hashlib
 
-def remove_dictionary_key(dictionary_array, key):
+def remove_dictionary_key(dictionary_array, keys):
     """
     remove a key from an array of dictionaries
     """
-    def it(x):
-        if key in x:
-            x.pop(key)
+    def it(x): 
+        for key in keys:
+            if key in x:
+                x.pop(key)
         return x
     return list(map(it, dictionary_array))
 

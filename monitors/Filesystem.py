@@ -69,7 +69,7 @@ class Filesystem:
                     {
                         'path': path_with_file,
                         'is_directory': False,
-                        'file_size': self.get_file_size(path_with_file),
+                        'size': self.get_file_size(path_with_file),
                         'last_modified': self.get_last_modified_time(
                             path.join(
                                 self.path,

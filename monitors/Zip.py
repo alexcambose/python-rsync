@@ -92,7 +92,7 @@ class Zip:
                 state.append({'path': file[:-1], 'is_directory': True})
             else:
                 state.append(
-                    {'path': file, 'is_directory': False,'file_size': info.file_size,
+                    {'path': file, 'is_directory': False,'size': info.file_size,
                      'last_modified': self.get_last_modified_time(info)})
         # # add top level folder
         # if len(name_list) > 0 and name_list[0].split(path.sep)[0] + path.sep not in name_list:

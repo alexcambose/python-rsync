@@ -33,8 +33,8 @@ class Syncer:
 
         state_a = self.class_a.create_state()[0]
         state_b = self.class_b.create_state()[0]
-        state_a = remove_dictionary_key(state_a, 'last_modified')
-        state_b = remove_dictionary_key(state_b, 'last_modified')
+        state_a = remove_dictionary_key(state_a, ['last_modified', 'size'])
+        state_b = remove_dictionary_key(state_b, ['last_modified', 'size'])
         state_a = sort_state(state_a)
         state_b = sort_state(state_b)
         log('a', state_a)
@@ -69,11 +69,11 @@ class Syncer:
             for j in range(min(len(state_a), len(state_b))):
                 # we have the same file but with different last_modified
                 # timestamps
-                if i < len(state_a) and i < len(state_b) and j < len(
-                        state_a) and j < len(state_b):
-                    # the locations are matching and they are not a directory
-                    if state_a[i]['path'] == state_b[j]['path'] and state_a[i]['is_directory'] == state_b[
-                            j]['is_directory'] and state_a[i]['last_modified'] != state_b[j]['last_modified']:
+                # if i < len(state_a) and i < len(state_b) and j < len(
+                #         state_a) and j < len(state_b):
+                # the locations are matching
+                if state_a[i]['path'] == state_b[j]['path']: 
+                    if state_a[i]['last_modified'] != state_b[j]['last_modified']:
                         # copy the most recent modified file
                         if state_a[i]['last_modified'] < state_b[j][
                                 'last_modified']:
@@ -82,6 +82,22 @@ class Syncer:
                         else:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
+                    # timestaps are equal but the sizes are different
+                    elif state_a[i]['size'] != state_b[j]['size']:
+                        # copy the file with the largest size
+                        if state_a[i]['size'] < state_b[j][
+                                'size']:
+                            self.class_a.copy_from(
+                                self.class_b, state_b[i]['path'])
+                        else:
+                            self.class_b.copy_from(
+                                self.class_a, state_a[i]['path'])
+                    # timestaps are equal, sizes are equal, but hashes are different
+                    elif self.class_a.create_file_hash(state_a[i]['path']) != self.class_b.create_file_hash(state_b[j]['path']):
+                        print(self.class_a.create_file_hash(state_a[i]['path']), self.class_b.create_file_hash(state_b[j]['path']))
+                        self.class_b.copy_from(
+                            self.class_a, state_a[i]['path'])
+                        
 
         # finally, run create state again to update the states after the
         # changes
