@@ -34,8 +34,8 @@ for i in range(0, 2):
 # initialise syncer
 syncer = Syncer(instances[0], instances[1])
 # file changes via polling
-# while True:
-#     sleep(2)
-#     syncer.update()
-# print(instances[0].create_file_hash('fisier'))
-# print(instances[0].create_file_hash('fisier'))
+while True:
+    print('===============================================================================')
+    sleep(3)
+    syncer.update()
+# print(instances[1].read('aa'))

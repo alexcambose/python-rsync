@@ -87,10 +87,10 @@ class Filesystem:
         :return: The contents of the specified file
         """
         filename = path.normpath(self.path + filename)
-        log('Reading ', filename)
         f = open(filename, "rb")
         content = f.read()
         f.close()
+        log('Reading ', filename, 'content', content)
         return content
 
     @handle_failure(log)
@@ -115,6 +115,14 @@ class Filesystem:
         """
         filename = path.normpath(self.path + filename)
         mkdir(filename)
+    @handle_failure(log)
+    def file_exists(self, filename):
+        """
+        Check the existence of a file
+        :param filename: File path
+        :return: True if the file exists
+        """
+        return path.exists(path.join(self.path, filename))
 
     @handle_failure(log)
     def delete(self, filename):
@@ -138,13 +146,12 @@ class Filesystem:
         """
         target_path = filename
         from_path = filename
-        log('reading ', from_path, 'from class b',
-            class_b.is_directory(from_path))
+        log('reading ', from_path, 'from class b')
         if class_b.is_directory(from_path):
             log('Create dir from ', from_path, 'to', target_path)
             self.create_directory(target_path)
         else:
-            log('Copy from ', from_path, 'to',
+            log('Copy from ', class_b.path + from_path, 'to',
                 path.normpath(self.path + target_path))
             contents = class_b.read(from_path)
             f = open(path.normpath(self.path + target_path), 'wb')

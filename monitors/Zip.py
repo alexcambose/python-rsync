@@ -128,6 +128,18 @@ class Zip:
                 return self.zip_r.read(item.filename)
 
     @handle_failure(log)
+    def file_exists(self, filename):
+        """
+        Check the existence of a file
+        :param filename: File path
+        :return: True if the file exists
+        """
+        for item in self.zip_r.infolist():
+            if item.filename == filename:
+                return True
+        return False
+
+    @handle_failure(log)
     def is_directory(self, filename):
         """
         Checks to see whether the file specified is a directory

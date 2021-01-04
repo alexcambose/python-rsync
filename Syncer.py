@@ -30,16 +30,13 @@ class Syncer:
         initial sync between two locations
         :return:
         """
-
+        log('STARTUP')
         state_a = self.class_a.create_state()[0]
         state_b = self.class_b.create_state()[0]
         state_a = remove_dictionary_key(state_a, ['last_modified', 'size'])
         state_b = remove_dictionary_key(state_b, ['last_modified', 'size'])
         state_a = sort_state(state_a)
         state_b = sort_state(state_b)
-        log('a', state_a)
-        log('b', state_b)
-        log('')
         # copy missing files
         for i in range(max(len(state_a), len(state_b))):
             if i < len(state_a) and state_a[i] not in state_b:
@@ -58,8 +55,8 @@ class Syncer:
         state_a = sort_state(state_a)
         state_b = sort_state(state_b)
 
-        log(state_a)
-        log(state_b)
+        log('state_a', state_a)
+        log('state_b', state_b)
         log('')
         # element_a 804100188 size: 17 bytes
         # element_b 804100189 size: 16 bytes
@@ -79,22 +76,17 @@ class Syncer:
                                 'last_modified']:
                             self.class_a.copy_from(
                                 self.class_b, state_b[i]['path'])
-                        else:
+                        elif state_a[i]['last_modified'] > state_b[j][
+                                'last_modified']:
                             self.class_b.copy_from(
                                 self.class_a, state_a[i]['path'])
                     # timestaps are equal but the sizes are different
                     elif state_a[i]['size'] != state_b[j]['size']:
-                        # copy the file with the largest size
-                        if state_a[i]['size'] < state_b[j][
-                                'size']:
-                            self.class_a.copy_from(
+                        log('DIFFERENT SIZES')
+                        self.class_a.copy_from(
                                 self.class_b, state_b[i]['path'])
-                        else:
-                            self.class_b.copy_from(
-                                self.class_a, state_a[i]['path'])
                     # timestaps are equal, sizes are equal, but hashes are different
                     elif self.class_a.create_file_hash(state_a[i]['path']) != self.class_b.create_file_hash(state_b[j]['path']):
-                        print(self.class_a.create_file_hash(state_a[i]['path']), self.class_b.create_file_hash(state_b[j]['path']))
                         self.class_b.copy_from(
                             self.class_a, state_a[i]['path'])
                         
@@ -103,6 +95,7 @@ class Syncer:
         # changes
         self.class_a.create_state()
         self.class_b.create_state()
+        log('END STARTUP')
 
     def compute_states(self, state, previous_state, class_a, class_b):
         """
@@ -115,24 +108,33 @@ class Syncer:
         """
         state = sort_state(state)
         previous_state = sort_state(previous_state)
-        log(state)
-        log(previous_state)
+        log(class_a.path, state)
+        log(class_a.path, previous_state)
+
         modified = False
-        for element_b in state:
-            for element_a in previous_state:
+        for current_index, element_b in enumerate(state):
+            for previous_index, element_a in enumerate(previous_state):
                 # element already exists
                 if element_a['path'] == element_b['path'] and element_b[
                         'is_directory'] == element_a['is_directory'] and not element_a['is_directory']:
-                    
-                    if element_a['last_modified'] > element_b['last_modified']:
-                        class_b.copy_from(class_a, element_a['path'])
+                    if element_a['last_modified'] != element_b['last_modified']:
                         modified = True
-                    if element_a['last_modified'] == element_b['last_modified']:
-                        if element_a['file_size'] != element_b['file_size']:
-                            class_b.copy_from(class_a, element_a['path'])
-                        elif class_a.create_file_hash(element_a['path']) != class_b.create_file_hash(element_b['path']):
-                            class_b.copy_from(class_a, element_a['path'])
-
+                        # copy the most recent modified file
+                        # previous state timestamp < current state timestamp
+                        if element_a['last_modified'] < element_b[
+                                'last_modified']:
+                            class_b.copy_from(
+                                class_a, element_a['path'])
+                            previous_state[previous_index]['last_modified'] = element_b['last_modified']
+                            previous_state[previous_index]['size'] = element_b['size']
+                    # timestaps are equal but the sizes are different
+                    elif element_a['size'] != element_b['size']:
+                        modified = True
+                        log('DIFFERENT SIZES')
+                        self.class_a.copy_from(
+                            self.class_b, element_b['path'])
+                        # previous state size = current state size
+                        previous_state[previous_index]['size'] = element_b['size']
             # new file added
             if element_b not in previous_state:
                 log('File {} added'.format(element_b))
@@ -167,6 +169,14 @@ class Syncer:
                         modified = True
                         break
         return modified
+    def check_hash(self, state_a, state_b,  class_a, class_b):
+         for i in range(max(len(state_a), len(state_b))):
+            # we have a difference
+            for j in range(min(len(state_a), len(state_b))):
+                if state_a[i]['path'] == state_b[j]['path'] and class_a.create_file_hash(state_a[i]['path']) !=class_b.create_file_hash(state_b[j]['path']):
+                    class_b.copy_from(class_a, state_a[i]['path'])
+        # log('hash of', element_a['path'], class_a.create_file_hash(element_a['path']))
+        # log('hash of',element_a['path'],  class_b.create_file_hash(element_a['path']))
 
     def update(self):
         """
@@ -178,7 +188,6 @@ class Syncer:
 
         (state_b, previous_state_b) = self.class_b.create_state()
         # check for differences between the current and previous states
-        log('a')
         modified = self.compute_states(
             state_a, previous_state_a, self.class_a, self.class_b)
         if modified:
@@ -186,7 +195,7 @@ class Syncer:
             self.class_b.create_state()
             self.update()
             return
-        log('b')
+        log('=============')
         # check for differences between the current and previous states
         modified = self.compute_states(
             state_b, previous_state_b, self.class_b, self.class_a)
@@ -196,3 +205,5 @@ class Syncer:
             self.update()
         if str(state_a) != str(state_b):
             self.startup()
+        if not modified:
+            self.check_hash(state_a, state_b, self.class_a, self.class_b)

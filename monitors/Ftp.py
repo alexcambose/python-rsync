@@ -102,12 +102,7 @@ class Ftp:
             self.ftp.cwd('..')
             filepath = path.dirname(filepath)
 
-    @handle_failure(log)
-    def create_state(self):
-        """
-        Creates a state of the files
-        :return: Tuple of the current state and the previous state
-        """
+    def generate_filedata(self):
         state = []
         files = list(
             self.walk(
@@ -124,6 +119,14 @@ class Ftp:
                 path_with_file = path.join(dirname, filename)
                 state.append({'path': path_with_file, 'is_directory': False,
                               'last_modified': last_modified, 'size': size})
+        return state
+    @handle_failure(log)
+    def create_state(self):
+        """
+        Creates a state of the files
+        :return: Tuple of the current state and the previous state
+        """
+        state = self.generate_filedata()
         self.state_manager.set_state(state)
         return self.state_manager.get_current_state(
         ), self.state_manager.get_previous_state()
@@ -163,6 +166,19 @@ class Ftp:
         contents = r.getvalue()
         return contents
 
+    @handle_failure(log)
+    @retry_function(2)
+    def file_exists(self, filepath):
+        """
+        Check the existence of a file
+        :param filename: File path
+        :return: True if the file exists
+        """
+        files = self.generate_filedata()
+        for file in files:
+            if filepath == file['path']:
+                return True
+        return False
     @handle_failure(log)
     @retry_function(2)
     def create_directory(self, filename):
@@ -209,8 +225,12 @@ class Ftp:
         :param content: Content to be written
         """
         bio = BytesIO(content)
-        log('Writing to', filename)
-        self.ftp.storbinary('STOR ' + filename, bio)
+        directory_name, file_name = path.split(
+            path.join(self.path,filename))
+        self.ftp.cwd(directory_name)
+        log('Writing', content, ' to', directory_name)
+
+        self.ftp.storbinary('STOR ' + file_name, bio)
 
     @handle_failure(log)
     @retry_function(2)
@@ -222,13 +242,14 @@ class Ftp:
         """
         target_path = filename
         from_path = filename
+
         if target_path[0] == path.sep:
             target_path = '.' + target_path
+        log('Copy', path.join(class_b.path, from_path), 'to', path.join(self.path, target_path))
+        
         if class_b.is_directory(from_path):
-            log('Copy from ', from_path, 'to', target_path)
             self.create_directory(target_path)
         else:
-            log('Copy', from_path, 'to', target_path)
             self.write(target_path, class_b.read(from_path))
     
     @handle_failure(log)
