@@ -69,7 +69,7 @@ class Syncer:
                 # if i < len(state_a) and i < len(state_b) and j < len(
                 #         state_a) and j < len(state_b):
                 # the locations are matching
-                if state_a[i]['path'] == state_b[j]['path']: 
+                if state_a[i]['path'] == state_b[j]['path']:
                     if state_a[i]['last_modified'] != state_b[j]['last_modified']:
                         # copy the most recent modified file
                         if state_a[i]['last_modified'] < state_b[j][
@@ -84,12 +84,12 @@ class Syncer:
                     elif state_a[i]['size'] != state_b[j]['size']:
                         log('DIFFERENT SIZES')
                         self.class_a.copy_from(
-                                self.class_b, state_b[i]['path'])
-                    # timestaps are equal, sizes are equal, but hashes are different
+                            self.class_b, state_b[i]['path'])
+                    # timestaps are equal, sizes are equal, but hashes are
+                    # different
                     elif self.class_a.create_file_hash(state_a[i]['path']) != self.class_b.create_file_hash(state_b[j]['path']):
                         self.class_b.copy_from(
                             self.class_a, state_a[i]['path'])
-                        
 
         # finally, run create state again to update the states after the
         # changes
@@ -169,11 +169,13 @@ class Syncer:
                         modified = True
                         break
         return modified
-    def check_hash(self, state_a, state_b,  class_a, class_b):
-         for i in range(max(len(state_a), len(state_b))):
+
+    def check_hash(self, state_a, state_b, class_a, class_b):
+        for i in range(max(len(state_a), len(state_b))):
             # we have a difference
             for j in range(min(len(state_a), len(state_b))):
-                if state_a[i]['path'] == state_b[j]['path'] and class_a.create_file_hash(state_a[i]['path']) !=class_b.create_file_hash(state_b[j]['path']):
+                if not state_a[i]['is_directory'] and state_a[i]['path'] == state_b[j]['path'] and class_a.create_file_hash(
+                        state_a[i]['path']) != class_b.create_file_hash(state_b[j]['path']):
                     class_b.copy_from(class_a, state_a[i]['path'])
         # log('hash of', element_a['path'], class_a.create_file_hash(element_a['path']))
         # log('hash of',element_a['path'],  class_b.create_file_hash(element_a['path']))

@@ -4,11 +4,12 @@ utility functions
 from os import path
 import hashlib
 
+
 def remove_dictionary_key(dictionary_array, keys):
     """
     remove a key from an array of dictionaries
     """
-    def it(x): 
+    def it(x):
         for key in keys:
             if key in x:
                 x.pop(key)
@@ -38,7 +39,7 @@ def retry_function(times_number=2):
     """
     def decorate(f):
         def applicator(*args, **kwargs):
-            for i in range(times_number-1):
+            for i in range(times_number - 1):
                 try:
                     return f(*args, **kwargs)
                 except Exception:
@@ -62,7 +63,7 @@ def create_hash(file):
     """
     create file hash
     """
-    BUF_SIZE = 65536 
+    BUF_SIZE = 65536
     sha1 = hashlib.sha1()
 
     with open(file, 'rb') as f:
@@ -71,4 +72,4 @@ def create_hash(file):
             if not data:
                 break
             sha1.update(data)
-    return sha1.hexdigest();
+    return sha1.hexdigest()
