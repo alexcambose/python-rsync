@@ -36,5 +36,5 @@ location_a = './test/a'
 location_b = './test/b'
 
 # change_modification_time(location_a, 'fisier', 123)
-# change_file_contents(location_a, 'fisier', 'test' + str(randrange(8)))
+change_file_contents(location_a, 'fisier', 'test' + str(randrange(8)))
 # change_file_size(location_b, 'fisier')

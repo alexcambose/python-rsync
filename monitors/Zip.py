@@ -114,7 +114,6 @@ class Zip:
         for item in zip_info.date_time:
             date_string = date_string + str(item)
         date_time_obj = datetime.datetime.strptime(date_string, '%Y%m%d%H%M%S')
-        print(date_time_obj)
         return math.floor(date_time_obj.timestamp() / 2)
 
     @handle_failure(log)
@@ -175,7 +174,6 @@ class Zip:
         zout = ZipFile('./temp.zip', 'w')
         for item in self.zip_r.infolist():
             buff = self.zip_r.read(item.filename)
-            print(item.filename, filename)
             if item.filename != filename and (
                     is_directory and not item.filename.startswith(filename)):
                 zout.writestr(item, buff)
@@ -192,22 +190,23 @@ class Zip:
         :param content: Contents to be written
         """
 
-        zout = ZipFile('./temp.zip', 'w')
-        did_write = False
-        for item in self.zip_r.infolist():
-            buff = self.zip_r.read(item.filename)
-            if item.filename == filename:
-                zout.writestr(item, content)
-                did_write = True
-            else:
-                zout.writestr(item, buff)
-        if not did_write:
-            zout.writestr(filename, content)
-        zout.close()
-        rename("./temp.zip",
-               self.path)
-        self.open_read()
-
+        # zout = ZipFile('./temp.zip', 'w')
+        # did_write = False
+        # for item in self.zip_r.infolist():
+        #     buff = self.zip_r.read(item.filename)
+        #     if item.filename == filename:
+        #         zout.writestr(item, content)
+        #         did_write = True
+        #     else:
+        #         zout.writestr(item, buff)
+        # if not did_write:
+        #     zout.writestr(filename, content)
+        # zout.close()
+        # rename("./temp.zip",
+        #        self.path)
+        # self.open_read()
+        with ZipFile(self.path, 'w') as zipped_f:
+            zipped_f.writestr(filename, content)
     @handle_failure(log)
     def copy_from(self, class_b, filename):
         """
