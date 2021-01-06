@@ -255,6 +255,9 @@ class Ftp:
     @handle_failure(log)
     @retry_function(2)
     def create_file_hash(self, filename):
+        """
+        create a hash of a file
+        """
         m = hashlib.sha1()
         self.ftp.retrbinary('RETR ' + self.path + filename, m.update)
         return m.hexdigest()

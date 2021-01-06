@@ -36,6 +36,6 @@ syncer = Syncer(instances[0], instances[1])
 # file changes via polling
 while True:
     print('===============================================================================')
-    sleep(3)
+    sleep(1)
     syncer.update()
-# print(instances[1].read('aa'))
+# print(instances[0].create_state())

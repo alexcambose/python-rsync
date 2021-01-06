@@ -176,6 +176,7 @@ class Syncer:
             for j in range(min(len(state_a), len(state_b))):
                 if not state_a[i]['is_directory'] and state_a[i]['path'] == state_b[j]['path'] and class_a.create_file_hash(
                         state_a[i]['path']) != class_b.create_file_hash(state_b[j]['path']):
+                    log('DIFFERENT HASHES')
                     class_b.copy_from(class_a, state_a[i]['path'])
         # log('hash of', element_a['path'], class_a.create_file_hash(element_a['path']))
         # log('hash of',element_a['path'],  class_b.create_file_hash(element_a['path']))

@@ -158,6 +158,12 @@ class Filesystem:
             f.write(contents)
             f.close()
     def create_file_hash(self, filename):
-      return create_hash(path.join(self.path, filename))
+        """
+        create a hash of a file
+        """
+        return create_hash(path.join(self.path, filename))
     def get_file_size(self, filename):
+        """
+        get the size of a file
+        """
         return path.getsize(path.normpath(self.path + filename))

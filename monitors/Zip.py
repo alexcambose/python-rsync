@@ -114,6 +114,7 @@ class Zip:
         for item in zip_info.date_time:
             date_string = date_string + str(item)
         date_time_obj = datetime.datetime.strptime(date_string, '%Y%m%d%H%M%S')
+        print(date_time_obj)
         return math.floor(date_time_obj.timestamp() / 2)
 
     @handle_failure(log)
@@ -147,7 +148,6 @@ class Zip:
         :return: True if the specified file is a directory
         """
         current_state = self.state_manager.get_current_state()
-        print(current_state)
         for item in current_state:
             if item['path'] == filename:
                 return item['is_directory']
@@ -191,6 +191,7 @@ class Zip:
         :param filename: File
         :param content: Contents to be written
         """
+
         zout = ZipFile('./temp.zip', 'w')
         did_write = False
         for item in self.zip_r.infolist():
@@ -225,6 +226,9 @@ class Zip:
             contents = class_b.read(from_path)
             self.write(filename, contents)
     def create_file_hash(self, filename):
+        """
+        create a hash of a file
+        """
         with tempfile.TemporaryDirectory() as dirpath:
             tempfilename = path.join(dirpath, filename)
             with open(tempfilename, 'wb') as f:

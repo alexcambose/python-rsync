@@ -16,6 +16,7 @@ def change_modification_time(file_path, filename, mtime):
 def change_file_contents(file_path, filename, contents):
     file = path.join(file_path, filename)
     mtime = stat(file).st_mtime
+    print("Set content to '{}'".format(contents))
     f = open(file, "w")
     f.write(contents)
     f.close()
@@ -33,10 +34,7 @@ def change_file_size(file_path, filename):
 
 location_a = './test/a'
 location_b = './test/b'
-# create a file in both locations
 
-# create_file(location_a, 'fisier');
 # change_modification_time(location_a, 'fisier', 123)
-# change_file_contents(location_a, 'aa', 'dcaxx' + str(randrange(8)))
-change_file_size(location_b, 'aa')
-# change_file_size(location_b, 'bb')
+# change_file_contents(location_a, 'fisier', 'test' + str(randrange(8)))
+# change_file_size(location_b, 'fisier')
