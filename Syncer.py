@@ -171,6 +171,14 @@ class Syncer:
         return modified
 
     def check_hash(self, state_a, state_b, class_a, class_b):
+        """
+        Compares the hashes of two locations
+        :param state_a: - Current state 1
+        :param state_b: - Current state 2
+        :param class_a: - Class instance from where the files are being copied
+        :param class_b: - Class instance to where the files are being copied
+        :return: 
+        """
         for i in range(max(len(state_a), len(state_b))):
             # we have a difference
             for j in range(min(len(state_a), len(state_b))):
@@ -178,8 +186,6 @@ class Syncer:
                         state_a[i]['path']) != class_b.create_file_hash(state_b[j]['path']):
                     log('DIFFERENT HASHES')
                     class_b.copy_from(class_a, state_a[i]['path'])
-        # log('hash of', element_a['path'], class_a.create_file_hash(element_a['path']))
-        # log('hash of',element_a['path'],  class_b.create_file_hash(element_a['path']))
 
     def update(self):
         """
