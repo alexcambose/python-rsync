@@ -1,10 +1,6 @@
+# To be deleted
 from os import path, utime, stat
 from random import randrange
-
-
-def create_file(file_path, filename):
-    f = open(path.join(file_path, filename), "w")
-    f.close()
 
 
 def change_modification_time(file_path, filename, mtime):
@@ -36,5 +32,5 @@ location_a = './test/a'
 location_b = './test/b'
 
 # change_modification_time(location_a, 'fisier', 123)
-change_file_contents(location_a, 'fisier', 'test' + str(randrange(8)))
-# change_file_size(location_b, 'fisier')
+# change_file_contents(location_a, 'fisier', 'test' + str(randrange(8)))
+# change_file_size(location_a, 'fisier')

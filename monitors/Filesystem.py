@@ -105,6 +105,9 @@ class Filesystem:
     
     @handle_failure(log)
     def get_last_modified_time(self, filepath):
+        """
+        get the last modified time of a file
+        """
         return math.floor(path.getmtime(path.abspath(filepath)) / 2)
     
     @handle_failure(log)

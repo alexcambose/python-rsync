@@ -103,6 +103,9 @@ class Ftp:
             filepath = path.dirname(filepath)
 
     def generate_filedata(self):
+        """
+        generat a file state
+        """
         state = []
         files = list(
             self.walk(
